@@ -1,0 +1,13 @@
+{
+  "name": "elio-bday-pokemon-party",
+  "version": "1.0.0",
+  "description": "Elio's 5th Birthday Pokémon Party Invitation Web App",
+  "type": "module",
+  "scripts": {
+    "fetch-pokemon": "node tools/fetch-pokemon.mjs",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}

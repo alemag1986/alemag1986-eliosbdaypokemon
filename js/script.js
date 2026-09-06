@@ -1,0 +1,1054 @@
+/**
+ * Elio's 5th Birthday — Pokémon Party Interactive Script
+ * Best of 2026 Edition: Web Audio API Synth, Canvas Particle Confetti,
+ * Gyroscopic 3D Card Tilt, Theme Lighting Engine & Micro-Interactions
+ */
+
+(function () {
+  'use strict';
+
+  // Check for reduced motion preference
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // DOM Elements
+  const gate = document.getElementById('access-gate');
+  const gateScreen = gate ? gate.querySelector('.gb-screen') : null;
+  const gateForm = document.getElementById('gate-form');
+  const passcodeInput = document.getElementById('passcode-input');
+  const gateError = document.getElementById('gate-error');
+  const unlockFlash = document.getElementById('unlock-flash');
+  const mainContent = document.getElementById('main-content');
+  const pokemonGrid = document.getElementById('pokemon-grid');
+  const wildDialogBox = document.getElementById('wild-dialog-box');
+  const wildDialogText = document.getElementById('wild-dialog-text');
+  const dietForm = document.getElementById('diet-form');
+  const dietSuccessMessage = document.getElementById('diet-success-message');
+  const floatingBallButtons = document.querySelectorAll('.floating-pokeball-btn');
+  const soundToggleBtn = document.getElementById('sound-toggle');
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const confettiCanvas = document.getElementById('confetti-canvas');
+
+  const CORRECT_PASSCODE = 'ELIO5';
+  let soundEnabled = true;
+
+  /* ==========================================================================
+     1. WEB AUDIO API 8-BIT RETRO SOUND SYNTHESIZER (Zero External Files!)
+     ========================================================================== */
+  let audioCtx = null;
+
+  function getAudioContext() {
+    if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+    return audioCtx;
+  }
+
+  function playSynthSound(type) {
+    if (!soundEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'click') {
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.06);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.25);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'pop') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'victory') {
+        // Authentic 4-note victory fanfare: C5 -> G5 -> E5 -> C6
+        const notes = [
+          { f: 523.25, t: 0.0, d: 0.12 },
+          { f: 783.99, t: 0.12, d: 0.12 },
+          { f: 659.25, t: 0.24, d: 0.12 },
+          { f: 1046.50, t: 0.36, d: 0.45 }
+        ];
+        notes.forEach(function (n) {
+          const noteOsc = ctx.createOscillator();
+          const noteGain = ctx.createGain();
+          noteOsc.type = 'square';
+          noteOsc.frequency.setValueAtTime(n.f, now + n.t);
+          noteGain.gain.setValueAtTime(0.14, now + n.t);
+          noteGain.gain.linearRampToValueAtTime(0.01, now + n.t + n.d);
+          noteOsc.connect(noteGain);
+          noteGain.connect(ctx.destination);
+          noteOsc.start(now + n.t);
+          noteOsc.stop(now + n.t + n.d);
+        });
+      } else if (type === 'jump') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(320, now);
+        osc.frequency.exponentialRampToValueAtTime(720, now + 0.12);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      }
+    } catch (e) {
+      // Audio fallback silent
+    }
+  }
+
+  function initSoundToggle() {
+    if (!soundToggleBtn) return;
+    soundToggleBtn.addEventListener('click', function () {
+      soundEnabled = !soundEnabled;
+      const icon = soundToggleBtn.querySelector('.sound-icon');
+      if (icon) {
+        icon.textContent = soundEnabled ? '🔊' : '🔇';
+        icon.classList.toggle('sound-active', soundEnabled);
+      }
+      if (soundEnabled) playSynthSound('click');
+    });
+  }
+
+  /* ==========================================================================
+     2. DAY / SUNSET / NIGHT THEME LIGHTING ENGINE
+     ========================================================================== */
+  const THEMES = ['day', 'sunset', 'night'];
+  let currentThemeIndex = 0;
+
+  function initThemeToggle() {
+    if (!themeToggleBtn) return;
+    themeToggleBtn.addEventListener('click', function () {
+      currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+      const nextTheme = THEMES[currentThemeIndex];
+      document.documentElement.setAttribute('data-theme', nextTheme);
+
+      const icon = themeToggleBtn.querySelector('.theme-icon');
+      if (icon) {
+        if (nextTheme === 'day') icon.textContent = '☀️';
+        else if (nextTheme === 'sunset') icon.textContent = '🌅';
+        else if (nextTheme === 'night') icon.textContent = '🌙';
+      }
+      playSynthSound('click');
+    });
+  }
+
+  /* ==========================================================================
+     3. HIGH-PERFORMANCE PARTICLE CONFETTI SYSTEM
+     ========================================================================== */
+  let confettiParticles = [];
+  let confettiAnimationId = null;
+
+  function triggerConfettiBurst(originX, originY, count) {
+    if (prefersReducedMotion || !confettiCanvas) return;
+    const ctx = confettiCanvas.getContext('2d');
+    if (!ctx) return;
+
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    const colors = ['#eb3b32', '#ffd028', '#1b8cf2', '#52ba41', '#ffffff', '#ff7714'];
+    const x = originX || window.innerWidth / 2;
+    const y = originY || window.innerHeight / 2;
+
+    for (let i = 0; i < (count || 80); i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const velocity = 4 + Math.random() * 8;
+      confettiParticles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * velocity,
+        vy: Math.sin(angle) * velocity - 3,
+        size: 6 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 10,
+        opacity: 1,
+        life: 0.98 + Math.random() * 0.015,
+        shape: Math.random() > 0.4 ? 'rect' : 'circle'
+      });
+    }
+
+    if (!confettiAnimationId) {
+      runConfettiLoop();
+    }
+  }
+
+  function runConfettiLoop() {
+    if (!confettiCanvas) return;
+    const ctx = confettiCanvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+
+    for (let i = confettiParticles.length - 1; i >= 0; i--) {
+      const p = confettiParticles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.22; // gravity
+      p.vx *= 0.98; // drag
+      p.rotation += p.rotationSpeed;
+      p.opacity *= p.life;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.globalAlpha = p.opacity;
+      ctx.fillStyle = p.color;
+
+      if (p.shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      }
+      ctx.restore();
+
+      if (p.opacity < 0.05 || p.y > confettiCanvas.height + 50) {
+        confettiParticles.splice(i, 1);
+      }
+    }
+
+    if (confettiParticles.length > 0) {
+      confettiAnimationId = requestAnimationFrame(runConfettiLoop);
+    } else {
+      confettiAnimationId = null;
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    }
+  }
+
+  /* ==========================================================================
+     4. GATE & UNLOCK LOGIC
+     ========================================================================== */
+  function unlockSite(instant) {
+    if (!gate) return;
+
+    if (instant || prefersReducedMotion) {
+      gate.classList.add('hidden');
+      gate.setAttribute('aria-hidden', 'true');
+      if (mainContent) {
+        mainContent.removeAttribute('aria-hidden');
+      }
+      initInteractiveFeatures();
+      return;
+    }
+
+    playSynthSound('victory');
+    triggerConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 100);
+
+    gate.classList.add('unlocking');
+    if (unlockFlash) {
+      unlockFlash.classList.add('active');
+    }
+
+    setTimeout(function () {
+      gate.classList.add('hidden');
+      gate.setAttribute('aria-hidden', 'true');
+      if (mainContent) {
+        mainContent.removeAttribute('aria-hidden');
+      }
+      if (unlockFlash) {
+        unlockFlash.classList.remove('active');
+      }
+      initInteractiveFeatures();
+    }, 650);
+  }
+
+  function handlePasscodeSubmit(e) {
+    e.preventDefault();
+    if (!passcodeInput) return;
+
+    const enteredCode = passcodeInput.value.trim().toUpperCase();
+
+    if (enteredCode === CORRECT_PASSCODE) {
+      if (gateError) gateError.textContent = '';
+      unlockSite(false);
+    } else {
+      playSynthSound('error');
+      if (gateError) {
+        gateError.textContent = 'The code missed! Try again, Trainer!';
+      }
+      if (gateScreen) {
+        gateScreen.classList.remove('shake');
+        void gateScreen.offsetWidth;
+        gateScreen.classList.add('shake');
+      }
+      passcodeInput.focus();
+      passcodeInput.select();
+    }
+  }
+
+  function checkUrlPasscode() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeParam = urlParams.get('code');
+      if (codeParam && codeParam.trim().toUpperCase() === CORRECT_PASSCODE) {
+        unlockSite(true);
+        return true;
+      }
+    } catch (e) {
+      // Fallback
+    }
+    return false;
+  }
+
+  if (gateForm) {
+    gateForm.addEventListener('submit', handlePasscodeSubmit);
+  }
+
+  /* ==========================================================================
+     5. HERO FLOATING POKÉBALL INTERACTION
+     ========================================================================== */
+  function initFloatingPokeballs() {
+    if (!floatingBallButtons || floatingBallButtons.length === 0) return;
+
+    floatingBallButtons.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        if (btn.classList.contains('popping')) return;
+
+        playSynthSound('pop');
+        const rect = btn.getBoundingClientRect();
+        triggerConfettiBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
+
+        const roster = (typeof POKEMON_GUESTS !== 'undefined' && POKEMON_GUESTS.length)
+          ? POKEMON_GUESTS
+          : [{ name: 'Pikachu', image: 'assets/pokemon/25.png' }];
+
+        const randomPoke = roster[Math.floor(Math.random() * roster.length)];
+        const spriteWrapper = btn.querySelector('.popup-sprite-wrapper');
+
+        if (spriteWrapper) {
+          spriteWrapper.innerHTML = '<img src="' + randomPoke.image + '" alt="' + randomPoke.name + '">';
+        }
+
+        btn.classList.add('popping');
+
+        setTimeout(function () {
+          btn.classList.remove('popping');
+          if (spriteWrapper) {
+            spriteWrapper.innerHTML = '';
+          }
+        }, 2300);
+      });
+    });
+  }
+
+  /* ==========================================================================
+     6. TYPEWRITER EFFECT IN TRAINER DIALOG BOX
+     ========================================================================== */
+  const DIALOG_TEXT = "Let's train our next generation of Pokémon Trainers! Tap any Poké Ball to test your knowledge!";
+
+  function typewriteText(element, text, speed, callback) {
+    if (prefersReducedMotion) {
+      element.textContent = text;
+      if (callback) callback();
+      return;
+    }
+
+    element.textContent = '';
+    let index = 0;
+
+    const timer = setInterval(function () {
+      if (index < text.length) {
+        element.textContent += text.charAt(index);
+        index++;
+      } else {
+        clearInterval(timer);
+        if (callback) callback();
+      }
+    }, speed);
+  }
+
+  function initWildDialog() {
+    if (!wildDialogBox || !wildDialogText) return;
+
+    if (!('IntersectionObserver' in window)) {
+      wildDialogText.textContent = DIALOG_TEXT;
+      return;
+    }
+
+    let hasRun = false;
+    const observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting && !hasRun) {
+            hasRun = true;
+            typewriteText(wildDialogText, DIALOG_TEXT, 35);
+            observer.unobserve(wildDialogBox);
+          }
+        });
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(wildDialogBox);
+  }
+
+  /* ==========================================================================
+     7. POKÉMON TRAINER GUESSING GAME & SESSION PERSISTENCE
+     ========================================================================== */
+  const quizModal = document.getElementById('pokemon-quiz-modal');
+  const quizModalClose = document.getElementById('quiz-modal-close');
+  const quizModalBackdrop = document.getElementById('quiz-modal-backdrop');
+  const quizPokeballArt = document.getElementById('quiz-pokeball-art');
+  const quizMysterySprite = document.getElementById('quiz-mystery-sprite');
+  const quizClueDesc = document.getElementById('quiz-clue-desc');
+  const quizTypeClue = document.getElementById('quiz-type-clue');
+  const quizChoicesGrid = document.getElementById('quiz-choices-grid');
+  const quizFeedback = document.getElementById('quiz-feedback');
+  const quizFeedbackMsg = document.getElementById('quiz-feedback-msg');
+  const quizContinueBtn = document.getElementById('quiz-continue-btn');
+
+  function getTrainerGuesses() {
+    try {
+      const data = sessionStorage.getItem('pokemon_trainer_guesses');
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveTrainerGuess(pokemonId, chosenName, isCorrect) {
+    try {
+      const guesses = getTrainerGuesses();
+      guesses[pokemonId] = {
+        guess: chosenName,
+        isCorrect: Boolean(isCorrect),
+        timestamp: Date.now()
+      };
+      sessionStorage.setItem('pokemon_trainer_guesses', JSON.stringify(guesses));
+    } catch (e) {
+      // Storage fallback
+    }
+  }
+
+  function renderPokemonGrid() {
+    if (!pokemonGrid) return;
+    if (typeof POKEMON_GUESTS === 'undefined' || !Array.isArray(POKEMON_GUESTS)) return;
+
+    pokemonGrid.innerHTML = '';
+    const savedGuesses = getTrainerGuesses();
+
+    POKEMON_GUESTS.forEach(function (p) {
+      const card = document.createElement('article');
+      card.className = 'pokemon-card';
+      card.setAttribute('data-id', p.id);
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+
+      const typeBadges = p.types
+        .map(function (type) {
+          return '<span class="type-badge type-' + type + '">' + type + '</span>';
+        })
+        .join('');
+
+      const saved = savedGuesses[p.id];
+      const isRevealed = Boolean(saved);
+      const fallbackCdn = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + p.id + '.png';
+
+      if (isRevealed) {
+        card.classList.add('revealed');
+        card.classList.add('has-guessed');
+        card.setAttribute('aria-label', p.name + ' (Revealed). Your guess: ' + saved.guess + '.');
+
+        const guessHtml = saved.isCorrect
+          ? '<div class="trainer-guess-tag guess-correct">⭐ Guess: ' + saved.guess + ' (Correct!)</div>'
+          : '<div class="trainer-guess-tag guess-wrong">🎯 Guess: ' + saved.guess + '</div>';
+
+        card.innerHTML =
+          '<div class="card-sprite-stage">' +
+            '<div class="pokeball card-pokeball" aria-hidden="true" style="display: none;"></div>' +
+            '<div class="burst-ring" aria-hidden="true"></div>' +
+            '<img class="pokemon-sprite" src="' + p.image + '" alt="' + p.name + '" loading="lazy" onerror="this.onerror=null; this.src=\'' + fallbackCdn + '\';">' +
+          '</div>' +
+          '<h3 class="pokemon-name revealed-name">' + p.name + '</h3>' +
+          '<div class="pokemon-types">' + typeBadges + '</div>' +
+          '<p class="pokemon-desc revealed-desc">“' + (p.description || 'A mysterious party guest!') + '”</p>' +
+          '<div class="card-guess-slot">' + guessHtml + '</div>';
+      } else {
+        // Do NOT name the Pokémon if unrevealed! Mystery icon is the Pokéball.
+        card.setAttribute('aria-label', 'Mystery Pokémon #' + p.id + '. Tap to guess!');
+
+        card.innerHTML =
+          '<div class="card-sprite-stage">' +
+            '<div class="pokeball card-pokeball" aria-label="Mystery Poké Ball"></div>' +
+            '<div class="burst-ring" aria-hidden="true"></div>' +
+            '<img class="pokemon-sprite" src="' + p.image + '" alt="' + p.name + '" loading="lazy" style="display: none;" onerror="this.onerror=null; this.src=\'' + fallbackCdn + '\';">' +
+          '</div>' +
+          '<h3 class="pokemon-name mystery-name">Mystery Pokémon</h3>' +
+          '<div class="pokemon-types">' + typeBadges + '</div>' +
+          '<p class="pokemon-desc mystery-desc">“' + (p.description || 'Who could this Pokémon be?') + '”</p>' +
+          '<div class="card-guess-slot"><div class="card-mystery-tag">⚡ Tap to Guess!</div></div>';
+      }
+
+      function onCardActivate() {
+        openQuizModal(p);
+      }
+
+      card.addEventListener('click', onCardActivate);
+      card.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onCardActivate();
+        }
+      });
+
+      pokemonGrid.appendChild(card);
+    });
+  }
+
+  function openQuizModal(pokemon) {
+    if (!quizModal) return;
+
+    const fallbackCdn = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/' + pokemon.id + '.png';
+
+    // The mystery icon is the Pokéball
+    if (quizPokeballArt) {
+      quizPokeballArt.style.display = 'inline-block';
+      quizPokeballArt.className = 'pokeball quiz-modal-pokeball';
+    }
+
+    if (quizMysterySprite) {
+      quizMysterySprite.style.display = 'none';
+      quizMysterySprite.classList.remove('revealed-color');
+      quizMysterySprite.src = pokemon.image;
+      quizMysterySprite.alt = pokemon.name;
+      quizMysterySprite.onerror = function () {
+        this.onerror = null;
+        this.src = fallbackCdn;
+      };
+    }
+
+    if (quizClueDesc) {
+      quizClueDesc.textContent = '“' + (pokemon.description || 'A mysterious party guest!') + '”';
+    }
+
+    if (quizTypeClue) {
+      const typeIcons = pokemon.types.map(function (t) {
+        return '<span class="type-badge type-' + t + '">' + t + '</span>';
+      }).join(' ');
+      quizTypeClue.innerHTML = '<span>Type Clue: </span>' + typeIcons;
+    }
+
+    // Generate 4 options: correct answer + 3 random distractors from POKEMON_GUESTS
+    const otherPool = POKEMON_GUESTS
+      .filter(function (item) { return item.id !== pokemon.id; })
+      .map(function (item) { return item.name; });
+
+    // Shuffle pool and pick 3
+    const shuffledPool = otherPool.slice().sort(function () { return 0.5 - Math.random(); });
+    const choices = [pokemon.name, shuffledPool[0], shuffledPool[1], shuffledPool[2]];
+    choices.sort(function () { return 0.5 - Math.random(); });
+
+    if (quizChoicesGrid) {
+      quizChoicesGrid.innerHTML = '';
+      choices.forEach(function (name) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'quiz-choice-btn';
+        btn.textContent = name;
+        btn.setAttribute('data-name', name);
+
+        btn.addEventListener('click', function () {
+          handleQuizGuess(pokemon, name, btn);
+        });
+
+        quizChoicesGrid.appendChild(btn);
+      });
+    }
+
+    if (quizFeedback) {
+      quizFeedback.classList.add('hidden');
+    }
+
+    quizModal.classList.remove('hidden');
+    quizModal.removeAttribute('aria-hidden');
+    playSynthSound('click');
+  }
+
+  function handleQuizGuess(pokemon, chosenName, clickedBtn) {
+    const isCorrect = (chosenName.toLowerCase() === pokemon.name.toLowerCase());
+
+    // Disable all option buttons
+    const allBtns = quizChoicesGrid.querySelectorAll('.quiz-choice-btn');
+    allBtns.forEach(function (b) {
+      b.disabled = true;
+      if (b.getAttribute('data-name') === pokemon.name) {
+        b.classList.add('is-correct');
+      }
+    });
+
+    if (!isCorrect && clickedBtn) {
+      clickedBtn.classList.add('is-wrong');
+    }
+
+    // Reveal in modal: swap mystery pokeball for revealed sprite in full color
+    if (quizPokeballArt) {
+      quizPokeballArt.style.display = 'none';
+    }
+    if (quizMysterySprite) {
+      quizMysterySprite.style.display = 'inline-block';
+      quizMysterySprite.classList.add('revealed-color');
+    }
+
+    // Save to session
+    saveTrainerGuess(pokemon.id, chosenName, isCorrect);
+
+    // Audio & visuals
+    if (isCorrect) {
+      playSynthSound('victory');
+      triggerConfettiBurst(window.innerWidth / 2, window.innerHeight / 2, 45);
+    } else {
+      playSynthSound('pop');
+    }
+
+    // Feedback message
+    if (quizFeedback && quizFeedbackMsg) {
+      quizFeedback.classList.remove('hidden');
+      quizFeedbackMsg.className = 'quiz-feedback-msg ' + (isCorrect ? 'feedback-correct' : 'feedback-wrong');
+      quizFeedbackMsg.textContent = isCorrect
+        ? '🎉 Excellent deduction, Trainer! It is ' + pokemon.name + '! You earned a Trainer Badge!'
+        : '⚡ Nice effort, Trainer! It was actually ' + pokemon.name + '! Keep training!';
+    }
+
+    // Update the card on the grid with reveal animation
+    const card = pokemonGrid.querySelector('.pokemon-card[data-id="' + pokemon.id + '"]');
+    if (card) {
+      card.classList.add('anim-wiggle');
+      setTimeout(function () {
+        card.classList.remove('anim-wiggle');
+        card.classList.add('anim-burst');
+        setTimeout(function () {
+          card.classList.remove('anim-burst');
+          card.classList.add('revealed');
+          card.classList.add('has-guessed');
+
+          // Reveal actual Pokémon name
+          const nameEl = card.querySelector('.pokemon-name');
+          if (nameEl) {
+            nameEl.className = 'pokemon-name revealed-name';
+            nameEl.textContent = pokemon.name;
+          }
+
+          // Swap pokeball to sprite
+          const ball = card.querySelector('.card-pokeball');
+          if (ball) ball.style.display = 'none';
+          const sprite = card.querySelector('.pokemon-sprite');
+          if (sprite) sprite.style.display = 'block';
+
+          // Update description styling
+          const descEl = card.querySelector('.pokemon-desc');
+          if (descEl) {
+            descEl.className = 'pokemon-desc revealed-desc';
+          }
+
+          // Update aria label
+          card.setAttribute('aria-label', pokemon.name + ' (Revealed). Your guess: ' + chosenName + '.');
+
+          const slot = card.querySelector('.card-guess-slot');
+          if (slot) {
+            slot.innerHTML = isCorrect
+              ? '<div class="trainer-guess-tag guess-correct">⭐ Guess: ' + chosenName + ' (Correct!)</div>'
+              : '<div class="trainer-guess-tag guess-wrong">🎯 Guess: ' + chosenName + '</div>';
+          }
+        }, 320);
+      }, 550);
+    }
+
+    // Update battle dialog text
+    if (wildDialogText) {
+      wildDialogText.textContent = isCorrect
+        ? 'Spot on, Trainer! ' + pokemon.name + ' was revealed! You are becoming a Pokémon Master!'
+        : 'Good training! ' + pokemon.name + ' joined the party! Keep catching \'em all!';
+    }
+  }
+
+  function closeQuizModal() {
+    if (!quizModal) return;
+    quizModal.classList.add('hidden');
+    quizModal.setAttribute('aria-hidden', 'true');
+    if (quizMysterySprite) {
+      quizMysterySprite.style.display = 'none';
+      quizMysterySprite.classList.remove('revealed-color');
+    }
+    if (quizPokeballArt) {
+      quizPokeballArt.style.display = 'inline-block';
+    }
+  }
+
+  if (quizModalClose) quizModalClose.addEventListener('click', closeQuizModal);
+  if (quizModalBackdrop) quizModalBackdrop.addEventListener('click', closeQuizModal);
+  if (quizContinueBtn) quizContinueBtn.addEventListener('click', closeQuizModal);
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && quizModal && !quizModal.classList.contains('hidden')) {
+      closeQuizModal();
+    }
+  });
+
+  /* ==========================================================================
+     8. SCROLL REVEALS FOR SECTIONS & CARDS
+     ========================================================================== */
+  function initScrollReveals() {
+    const revealElements = document.querySelectorAll('.scroll-reveal');
+    if (!revealElements || revealElements.length === 0) return;
+
+    if (!('IntersectionObserver' in window) || prefersReducedMotion) {
+      revealElements.forEach(function (el) {
+        el.classList.add('revealed');
+      });
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+
+    revealElements.forEach(function (el) {
+      observer.observe(el);
+    });
+  }
+
+  /* ==========================================================================
+     9. DIET RESTRICTIONS FORM WITH HEALING LIGHTS
+     ========================================================================== */
+  function initDietForm() {
+    if (!dietForm) return;
+
+    dietForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const nameInput = document.getElementById('trainer-name');
+      const countInput = document.getElementById('party-count');
+
+      if (!nameInput || !nameInput.value.trim()) {
+        nameInput.focus();
+        return;
+      }
+
+      if (!countInput || !countInput.value.trim() || parseInt(countInput.value, 10) < 1) {
+        countInput.focus();
+        return;
+      }
+
+      playSynthSound('victory');
+      const formRect = dietForm.getBoundingClientRect();
+      triggerConfettiBurst(formRect.left + formRect.width / 2, formRect.top + formRect.height / 2, 70);
+
+      dietForm.style.display = 'none';
+      if (dietSuccessMessage) {
+        dietSuccessMessage.hidden = false;
+        dietSuccessMessage.focus();
+      }
+    });
+  }
+
+  /* ==========================================================================
+     10. 3D CARD TILT & HOLOGRAPHIC SPECULAR ENGINE
+     ========================================================================== */
+  function initCardTilt() {
+    const stage = document.getElementById('hero-card-stage');
+    const card = document.getElementById('tcg-hero-card');
+    const glare = card ? card.querySelector('.card-holo-glare') : null;
+
+    if (!stage || !card || prefersReducedMotion) return;
+
+    stage.addEventListener('mousemove', function (e) {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+
+      const rotateX = ((y - centerY) / centerY) * -14;
+      const rotateY = ((x - centerX) / centerX) * 14;
+
+      card.style.transform = 'rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateZ(12px)';
+
+      if (glare) {
+        const glareX = (x / rect.width) * 100;
+        const glareY = (y / rect.height) * 100;
+        glare.style.opacity = '0.75';
+        glare.style.background = 'radial-gradient(circle at ' + glareX + '% ' + glareY + '%, rgba(255,255,255,0.65) 0%, rgba(255,220,100,0.35) 25%, transparent 65%)';
+      }
+    });
+
+    stage.addEventListener('mouseleave', function () {
+      card.style.transform = 'rotateX(0deg) rotateY(0deg) translateZ(0px)';
+      if (glare) {
+        glare.style.opacity = '0.5';
+        glare.style.background = '';
+      }
+    });
+  }
+
+  /* ==========================================================================
+     9. SCROLL-DRIVEN PIXEL TRAINER & OVERWORLD ROADS
+     ========================================================================== */
+  function initScrollTrainer() {
+    const trainer = document.getElementById('pixel-trainer');
+    const bubble = document.getElementById('trainer-bubble');
+    const roadSvg = document.getElementById('road-network-svg');
+    const routeBorder = document.getElementById('trainer-route-border');
+    const routeStepped = document.getElementById('trainer-route-stepped');
+    const routeSurface = document.getElementById('trainer-route-surface');
+    const routeDashes = document.getElementById('trainer-route-dashes');
+    const bridgeDeck = document.getElementById('trainer-route-bridge-deck');
+    const sign1 = document.getElementById('route-sign-1');
+    const sign2 = document.getElementById('route-sign-2');
+    const sign3 = document.getElementById('route-sign-3');
+    const sign4 = document.getElementById('route-sign-4');
+
+    if (!trainer || !routeSurface || !roadSvg) return;
+
+    let walkTimeout = null;
+
+    const TRAINER_QUOTES = [
+      "Let's Party! 🎉",
+      "Level 5 reached! ⚡",
+      "Gotta Catch 'Em All! 🔴",
+      "I choose you, Chuck E.! 🐭",
+      "Happy 5th Birthday Elio! 🎂",
+      "Pallet Town Champion! 🏆",
+      "Pizza & Tickets time! 🍕",
+      "Go Pikachu! ⚡"
+    ];
+
+    function buildWindingRoad() {
+      if (!mainContent) return;
+      const totalWidth = mainContent.offsetWidth || window.innerWidth;
+      const totalHeight = mainContent.offsetHeight || document.documentElement.scrollHeight;
+
+      roadSvg.setAttribute('width', totalWidth);
+      roadSvg.setAttribute('height', totalHeight);
+      roadSvg.setAttribute('viewBox', '0 0 ' + totalWidth + ' ' + totalHeight);
+
+      const hero = document.getElementById('hero');
+      const details = document.getElementById('details');
+      const pokemon = document.getElementById('pokemon');
+      const gifts = document.getElementById('gifts');
+      const rsvp = document.getElementById('rsvp');
+      const footer = document.querySelector('.site-footer');
+
+      const isMobile = totalWidth < 768;
+      const center = totalWidth * 0.5;
+      const leftMargin = isMobile ? totalWidth * 0.12 : Math.max(50, totalWidth * 0.16);
+      const rightMargin = isMobile ? totalWidth * 0.88 : Math.min(totalWidth - 50, totalWidth * 0.84);
+
+      // Vertical coordinates aligned with real section geometry (Details -> Gifts -> RSVP -> Pokémon -> Footer)
+      const treeCanopyY = details ? details.offsetTop - 18 : 780;
+      const y0 = treeCanopyY;                                                               // Starting right IN BETWEEN THE TREES!
+      const y1 = details ? details.offsetTop + 85 : 880;                                    // Pallet Town residential street between houses
+      const y2 = details ? details.offsetTop + 240 : 1040;                                  // Center of canal wooden footbridge
+      const y3 = details ? details.offsetTop + 420 : 1220;                                  // Ducks behind details cards
+      const y4 = gifts ? gifts.offsetTop + 130 : 1700;                                      // Commercial Plaza Festival Archway
+      const y5 = gifts ? gifts.offsetTop + gifts.offsetHeight * 0.55 : 2150;                // Ducks behind Gifts cards
+      const y6 = rsvp ? rsvp.offsetTop + 130 : 2650;                                        // Nurse Joy Healing Terminal entrance
+      const y7 = rsvp ? rsvp.offsetTop + rsvp.offsetHeight * 0.55 : 3150;                   // Ducks behind RSVP cards
+      const y8 = pokemon ? pokemon.offsetTop + 140 : 3650;                                  // Trainer Academy & Wild Safari entrance
+      const y9 = pokemon ? pokemon.offsetTop + pokemon.offsetHeight * 0.55 : 4150;          // Ducks behind Trainer Pokémon deck
+      const y10 = footer ? footer.offsetTop + 50 : totalHeight - 120;                       // Victory Gym finish line
+
+      // Waypoints engineered to weave down from between the trees, through towns, and behind cards
+      const points = [
+        { x: center, y: y0 },                                                                // Point 0: Start between trees
+        { x: isMobile ? center + 25 : center + 65, y: y1 },                                 // Point 1: Pallet Town street
+        { x: center, y: y2 },                                                                // Point 2: Wooden footbridge crossing canal
+        { x: isMobile ? rightMargin - 25 : center + 140, y: y3 },                            // Point 3: Ducks behind Details cards
+        { x: center, y: y4 },                                                                // Point 4: Commercial Plaza Festival Archway
+        { x: isMobile ? leftMargin + 30 : center - 100, y: y5 },                             // Point 5: Ducks behind Gifts cards
+        { x: isMobile ? rightMargin - 30 : center + 90, y: y6 },                             // Point 6: Ducks behind RSVP Terminal
+        { x: isMobile ? leftMargin + 20 : leftMargin + 50, y: y7 },                          // Point 7: Safari & Trainer Academy entrance
+        { x: isMobile ? rightMargin - 20 : rightMargin - 50, y: y8 },                        // Point 8: Ducks behind Wild Pokémon deck
+        { x: center, y: y9 },                                                                // Point 9: Approaching finish line
+        { x: center, y: y10 }                                                                // Point 10: Victory Gym finish line
+      ];
+
+      let d = 'M ' + points[0].x.toFixed(1) + ' ' + points[0].y.toFixed(1);
+      for (let i = 0; i < points.length - 1; i++) {
+        const curr = points[i];
+        const next = points[i + 1];
+        const midY = (curr.y + next.y) / 2;
+        const cp1x = curr.x;
+        const cp1y = midY;
+        const cp2x = next.x;
+        const cp2y = midY;
+        d += ' C ' + cp1x.toFixed(1) + ' ' + cp1y.toFixed(1) + ', ' +
+             cp2x.toFixed(1) + ' ' + cp2y.toFixed(1) + ', ' +
+             next.x.toFixed(1) + ' ' + next.y.toFixed(1);
+      }
+
+      if (routeBorder) routeBorder.setAttribute('d', d);
+      if (routeStepped) routeStepped.setAttribute('d', d);
+      routeSurface.setAttribute('d', d);
+      if (routeDashes) routeDashes.setAttribute('d', d);
+
+      // Wooden Bridge Deck at the canal crossing (Point 2)
+      if (bridgeDeck && points[2]) {
+        const bridgeX = points[2].x - 36;
+        const bridgeY = points[2].y - 35;
+        bridgeDeck.innerHTML =
+          '<rect x="' + bridgeX + '" y="' + bridgeY + '" width="72" height="70" rx="3" />' +
+          '<line x1="' + bridgeX + '" y1="' + (bridgeY + 4) + '" x2="' + (bridgeX + 72) + '" y2="' + (bridgeY + 4) + '" stroke="#4a2505" stroke-width="4"/>' +
+          '<line x1="' + bridgeX + '" y1="' + (bridgeY + 66) + '" x2="' + (bridgeX + 72) + '" y2="' + (bridgeY + 66) + '" stroke="#4a2505" stroke-width="4"/>' +
+          '<circle cx="' + (bridgeX + 6) + '" cy="' + (bridgeY + 4) + '" r="3" fill="#ffd700"/>' +
+          '<circle cx="' + (bridgeX + 66) + '" cy="' + (bridgeY + 4) + '" r="3" fill="#ffd700"/>' +
+          '<circle cx="' + (bridgeX + 6) + '" cy="' + (bridgeY + 66) + '" r="3" fill="#ffd700"/>' +
+          '<circle cx="' + (bridgeX + 66) + '" cy="' + (bridgeY + 66) + '" r="3" fill="#ffd700"/>';
+      }
+
+      const branchRoutes = document.getElementById('branching-town-routes');
+      if (branchRoutes) {
+        branchRoutes.innerHTML = '';
+      }
+    }
+
+    function updateTrainerPosition() {
+      const totalLength = routeSurface.getTotalLength();
+      if (!totalLength) return;
+
+      const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+
+      const currentLength = progress * totalLength;
+      const pt = routeSurface.getPointAtLength(currentLength);
+
+      const forwardLength = Math.min(totalLength, currentLength + 6);
+      const ptNext = routeSurface.getPointAtLength(forwardLength);
+
+      const dx = ptNext.x - pt.x;
+
+      if (dx > 0.4) {
+        trainer.classList.add('facing-right');
+        trainer.classList.remove('facing-left');
+      } else if (dx < -0.4) {
+        trainer.classList.add('facing-left');
+        trainer.classList.remove('facing-right');
+      }
+
+      trainer.style.transform = 'translate3d(' + (pt.x - 22).toFixed(1) + 'px, ' + (pt.y - 48).toFixed(1) + 'px, 0)';
+
+      trainer.classList.add('is-walking');
+      if (walkTimeout) clearTimeout(walkTimeout);
+      walkTimeout = setTimeout(function () {
+        trainer.classList.remove('is-walking');
+      }, 140);
+    }
+
+    function triggerTrainerJump() {
+      if (trainer.classList.contains('trainer-jumping')) return;
+      playSynthSound('jump');
+      trainer.classList.add('trainer-jumping', 'jumping');
+      const randomQuote = TRAINER_QUOTES[Math.floor(Math.random() * TRAINER_QUOTES.length)];
+      bubble.textContent = randomQuote;
+      bubble.classList.add('show-bubble');
+
+      setTimeout(function () {
+        trainer.classList.remove('trainer-jumping', 'jumping');
+      }, 550);
+
+      setTimeout(function () {
+        bubble.classList.remove('show-bubble');
+      }, 2400);
+    }
+
+    trainer.addEventListener('click', triggerTrainerJump);
+    trainer.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        triggerTrainerJump();
+      }
+    });
+
+    [sign1, sign2, sign3, sign4].forEach(function (s) {
+      if (s) {
+        s.addEventListener('click', function () {
+          playSynthSound('click');
+          s.style.transform = 'scale(1.12) translateY(-6px)';
+          setTimeout(function () {
+            s.style.transform = '';
+          }, 250);
+        });
+      }
+    });
+
+    buildWindingRoad();
+    updateTrainerPosition();
+
+    let ticking = false;
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        window.requestAnimationFrame(function () {
+          updateTrainerPosition();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    }, { passive: true });
+
+    let resizeTimer = null;
+    window.addEventListener('resize', function () {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(function () {
+        buildWindingRoad();
+        updateTrainerPosition();
+      }, 150);
+    });
+  }
+
+  /* ==========================================================================
+     INITIALIZATION ORCHESTRATOR
+     ========================================================================== */
+  function initInteractiveFeatures() {
+    initFloatingPokeballs();
+    renderPokemonGrid();
+    initWildDialog();
+    initScrollReveals();
+    initDietForm();
+    initCardTilt();
+    initSoundToggle();
+    initThemeToggle();
+    initScrollTrainer();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const isUnlockedByUrl = checkUrlPasscode();
+    if (!isUnlockedByUrl && passcodeInput) {
+      setTimeout(function () {
+        passcodeInput.focus();
+      }, 200);
+    }
+  });
+
+})();
