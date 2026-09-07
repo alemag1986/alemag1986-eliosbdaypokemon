@@ -46,6 +46,67 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     await expect(mainContent).not.toHaveAttribute('aria-hidden', 'true');
   });
 
+  test('Access Gate: should unlock when clicking physical START button', async ({ page }) => {
+    await page.goto('/');
+
+    const startBtn = page.locator('#gb-btn-start');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    // Gate should unlock and hide
+    const gate = page.locator('#access-gate');
+    await expect(gate).toHaveClass(/hidden/, { timeout: 3000 });
+
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+  });
+
+  test('Access Gate: should unlock when clicking on-screen PRESS START prompt', async ({ page }) => {
+    await page.goto('/');
+
+    const pressStart = page.locator('#gb-screen-press-start');
+    await expect(pressStart).toBeVisible();
+    await pressStart.click();
+
+    const gate = page.locator('#access-gate');
+    await expect(gate).toHaveClass(/hidden/, { timeout: 3000 });
+
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+  });
+
+  test('Access Gate: should shake on invalid code when pressing START button', async ({ page }) => {
+    await page.goto('/');
+
+    const passcodeInput = page.locator('#passcode-input');
+    await passcodeInput.fill('WRONGCODE');
+
+    const startBtn = page.locator('#gb-btn-start');
+    await startBtn.click();
+
+    const errorMsg = page.locator('#gate-error');
+    await expect(errorMsg).toContainText('The code missed! Try again, Trainer!');
+
+    const screen = page.locator('.gb-screen');
+    await expect(screen).toHaveClass(/shake/);
+  });
+
+  test('Access Gate: should fit entirely on Android mobile viewport without clipping top', async ({ page }) => {
+    // Android device viewport size (e.g. Pixel 7 / Galaxy S22)
+    await page.setViewportSize({ width: 412, height: 820 });
+    await page.goto('/');
+
+    const consoleBody = page.locator('.gb-console-body');
+    await expect(consoleBody).toBeVisible();
+
+    const box = await consoleBody.boundingBox();
+    expect(box).not.toBeNull();
+    // Top of console should not be clipped into negative space
+    expect(box.y).toBeGreaterThanOrEqual(0);
+    // Entire console should fit within the viewport height
+    expect(box.y + box.height).toBeLessThanOrEqual(820);
+  });
+
   test('URL Query Param: ?code=ELIO5 should instantly bypass gate', async ({ page }) => {
     await page.goto('/?code=ELIO5');
 

@@ -313,7 +313,7 @@ body {
   inset: 0;
   z-index: 10000;
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
   background-color: #0b1f0b;
   background-image:
@@ -321,6 +321,10 @@ body {
     repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 2px, transparent 2px, transparent 4px);
   padding: 1.5rem;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  box-sizing: border-box;
   transition: transform 0.65s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.65s ease, filter 0.65s ease;
 }
 
@@ -366,6 +370,7 @@ body {
 .gb-console-body {
   position: relative;
   z-index: 2;
+  margin: auto;
   width: 100%;
   max-width: 440px;
   background: linear-gradient(175deg, #dedce4 0%, #cac8d2 60%, #b5b3be 100%);
@@ -601,12 +606,37 @@ body {
 }
 
 .gb-press-start {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-family: var(--font-pixel);
   font-size: 0.7rem;
   color: var(--gb-darkest);
   letter-spacing: 2px;
   margin-top: 6px;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.1s, background-color 0.1s;
   animation: blinkSteps 1s steps(2, start) infinite;
+}
+
+.gb-press-start:hover,
+.gb-press-start:focus-visible {
+  background-color: rgba(48, 98, 48, 0.18);
+  outline: 2px dashed var(--gb-darkest);
+  outline-offset: 1px;
+}
+
+.gb-press-start:active {
+  transform: scale(0.95);
+  background-color: rgba(48, 98, 48, 0.3);
 }
 
 @keyframes blinkSteps {
@@ -673,10 +703,31 @@ body {
 
 .dpad-btn {
   position: absolute;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
   color: #4a4d57;
   font-size: 0.6rem;
   z-index: 3;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s, color 0.08s;
 }
+
+.dpad-btn:hover,
+.dpad-btn:focus-visible {
+  color: #ffffff;
+  outline: none;
+}
+
+.dpad-btn:active {
+  color: #ffcb05;
+  transform: scale(0.85);
+}
+
 .dpad-up { top: 6px; left: 40px; }
 .dpad-right { top: 38px; right: 8px; }
 .dpad-down { bottom: 6px; left: 40px; }
@@ -714,6 +765,24 @@ body {
   font-family: system-ui, sans-serif;
   font-weight: 900;
   font-size: 0.9rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  padding: 0;
+  transition: transform 0.08s, box-shadow 0.08s;
+}
+
+.gb-round-btn:hover,
+.gb-round-btn:focus-visible {
+  box-shadow: 2px 4px 0 var(--ink), 0 0 8px rgba(184, 48, 110, 0.6);
+  outline: none;
+}
+
+.gb-round-btn:active,
+.gb-round-btn.active-pressed {
+  transform: translate(2px, 2px);
+  box-shadow: 0 1px 0 var(--ink), inset 1px 2px 3px rgba(0, 0, 0, 0.4);
 }
 
 .btn-label {
@@ -742,6 +811,31 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 4px;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.08s;
+}
+
+.pill-btn-wrap:focus-visible {
+  outline: 2px solid var(--poke-blue, #2980b9);
+  border-radius: 8px;
+}
+
+.pill-btn-wrap:active .rubber-pill,
+.pill-btn-wrap.active-pressed .rubber-pill {
+  transform: translate(1px, 1px) scale(0.94);
+  box-shadow: inset 1px 2px 3px rgba(0, 0, 0, 0.5), 0 0 0 var(--ink);
+  background-color: #535660;
+}
+
+.pill-btn-wrap:active .pill-text,
+.pill-btn-wrap.active-pressed .pill-text {
+  color: #1a1b4b;
 }
 
 .rubber-pill {
@@ -751,6 +845,7 @@ body {
   border: 2px solid var(--ink);
   border-radius: 8px;
   box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.3), 1px 2px 0 var(--ink);
+  transition: transform 0.08s, background-color 0.08s, box-shadow 0.08s;
 }
 
 .pill-text {
@@ -759,6 +854,7 @@ body {
   font-size: 0.55rem;
   color: #35368a;
   letter-spacing: 0.5px;
+  transition: color 0.08s;
 }
 
 .gb-speaker-grille {
@@ -3206,6 +3302,225 @@ section {
 /* ==========================================================================
    RESPONSIVE BREAKPOINTS (MOBILE & TABLET)
    ========================================================================== */
+@media (max-width: 640px), (max-height: 850px) {
+  .access-gate {
+    padding: 8px 10px;
+  }
+
+  .gb-console-body {
+    max-width: 360px;
+    padding: 10px 14px 14px 14px;
+    border-width: 4px;
+    border-radius: 16px 16px 50px 16px;
+  }
+
+  .gb-top-ridge {
+    margin-bottom: 6px;
+  }
+
+  .cartridge-label,
+  .gb-switch-label {
+    font-size: 0.4rem;
+  }
+
+  .gb-bezel {
+    padding: 10px 12px 12px 12px;
+    margin-bottom: 8px;
+    border-width: 3px;
+    border-radius: 10px 10px 28px 10px;
+  }
+
+  .gb-bezel-header {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+
+  .gb-lens-text {
+    font-size: 0.48rem;
+    letter-spacing: 1px;
+  }
+
+  .gb-battery-row {
+    margin-bottom: 4px;
+    gap: 4px;
+    padding-left: 4px;
+  }
+
+  .battery-led {
+    width: 7px;
+    height: 7px;
+  }
+
+  .battery-label {
+    font-size: 0.44rem;
+  }
+
+  .gb-screen {
+    padding: 10px 10px 8px 10px;
+    border-width: 3px;
+  }
+
+  .gb-kicker {
+    font-size: 0.55rem;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .gate-pokeball-container {
+    margin-bottom: 8px;
+  }
+
+  .spinning-pokeball {
+    width: 44px;
+    height: 44px;
+  }
+
+  .gb-title {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .gb-subtitle {
+    font-size: 0.72rem;
+    line-height: 1.3;
+    margin-bottom: 10px;
+  }
+
+  .gb-input {
+    font-size: 0.72rem;
+    letter-spacing: 2px;
+    padding: 7px 8px;
+    width: 130px;
+    border-width: 2.5px;
+  }
+
+  .gb-btn {
+    font-size: 0.65rem;
+    padding: 7px 10px;
+    border-width: 2.5px;
+  }
+
+  .gb-error {
+    min-height: 1.2rem;
+    margin-top: 6px;
+    font-size: 0.55rem;
+  }
+
+  .gb-press-start {
+    font-size: 0.62rem;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+    padding: 2px 6px;
+  }
+
+  .gb-console-brand {
+    margin-bottom: 8px;
+    padding-left: 6px;
+  }
+
+  .gb-brand-gameboy {
+    font-size: 0.9rem;
+  }
+
+  .gb-logo-italic {
+    font-size: 1rem;
+  }
+
+  .gb-controls-row {
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+
+  .gb-dpad {
+    width: 72px;
+    height: 72px;
+  }
+
+  .gb-dpad::before {
+    top: 24px;
+    left: 0;
+    width: 72px;
+    height: 24px;
+    border-width: 2.5px;
+  }
+
+  .gb-dpad::after {
+    top: 0;
+    left: 24px;
+    width: 24px;
+    height: 72px;
+    border-width: 2.5px;
+  }
+
+  .dpad-center {
+    top: 28px;
+    left: 28px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .dpad-up { top: 4px; left: 32px; font-size: 0.5rem; }
+  .dpad-right { top: 30px; right: 5px; font-size: 0.5rem; }
+  .dpad-down { bottom: 4px; left: 32px; font-size: 0.5rem; }
+  .dpad-left { top: 30px; left: 5px; font-size: 0.5rem; }
+
+  .gb-action-buttons {
+    gap: 10px;
+    padding-right: 4px;
+  }
+
+  .gb-action-pill {
+    padding: 4px 6px 6px 6px;
+    border-radius: 18px;
+    gap: 4px;
+  }
+
+  .gb-round-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.78rem;
+    border-width: 2.5px;
+  }
+
+  .btn-label {
+    font-size: 0.55rem;
+  }
+
+  .gb-bottom-controls {
+    padding: 0 8px;
+  }
+
+  .gb-pill-btns {
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .rubber-pill {
+    width: 30px;
+    height: 10px;
+  }
+
+  .pill-text {
+    font-size: 0.48rem;
+  }
+
+  .gb-speaker-grille {
+    gap: 4px;
+    padding-bottom: 4px;
+  }
+
+  .speaker-slot {
+    width: 5px;
+    height: 34px;
+  }
+
+  .gb-phones-notch {
+    margin-top: 6px;
+    font-size: 0.48rem;
+  }
+}
+
 @media (max-width: 640px) {
   .nav-container {
     justify-content: center;
@@ -3231,14 +3546,6 @@ section {
 
   .section-h2 {
     font-size: 1.1rem;
-  }
-
-  .gb-title {
-    font-size: 0.8rem;
-  }
-
-  .gb-console-body {
-    padding: 14px 10px 20px 10px;
   }
 
   .pokemon-grid {

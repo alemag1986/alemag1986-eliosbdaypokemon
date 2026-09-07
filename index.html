@@ -87,9 +87,9 @@
             <div id="gate-error" class="gb-error" role="alert" aria-live="assertive"></div>
           </form>
 
-          <div class="gb-press-start" aria-hidden="true">
+          <button type="button" id="gb-screen-press-start" class="gb-press-start" aria-label="Press Start to Begin">
             <span>▶</span> PRESS START
-          </div>
+          </button>
         </div>
       </div>
 
@@ -101,42 +101,42 @@
       <!-- Controls Area (D-Pad & Action Buttons) -->
       <div class="gb-controls-row">
         <!-- D-Pad -->
-        <div class="gb-dpad" aria-hidden="true">
+        <div class="gb-dpad" role="group" aria-label="Game Boy Directional Pad">
           <div class="dpad-center"></div>
-          <div class="dpad-btn dpad-up">▲</div>
-          <div class="dpad-btn dpad-right">▶</div>
-          <div class="dpad-btn dpad-down">▼</div>
-          <div class="dpad-btn dpad-left">◀</div>
+          <button type="button" class="dpad-btn dpad-up" aria-label="Up">▲</button>
+          <button type="button" class="dpad-btn dpad-right" aria-label="Right">▶</button>
+          <button type="button" class="dpad-btn dpad-down" aria-label="Down">▼</button>
+          <button type="button" class="dpad-btn dpad-left" aria-label="Left">◀</button>
         </div>
 
         <!-- Action Buttons A & B -->
-        <div class="gb-action-buttons" aria-hidden="true">
+        <div class="gb-action-buttons">
           <div class="gb-action-pill pill-b">
-            <div class="gb-round-btn btn-b">B</div>
+            <button type="button" id="gb-btn-b" class="gb-round-btn btn-b" aria-label="B Button">B</button>
             <span class="btn-label">B</span>
           </div>
           <div class="gb-action-pill pill-a">
-            <div class="gb-round-btn btn-a">A</div>
+            <button type="button" id="gb-btn-a" class="gb-round-btn btn-a" aria-label="A Button">A</button>
             <span class="btn-label">A</span>
           </div>
         </div>
       </div>
 
       <!-- Bottom Select / Start & Speaker -->
-      <div class="gb-bottom-controls" aria-hidden="true">
+      <div class="gb-bottom-controls">
         <div class="gb-pill-btns">
-          <div class="pill-btn-wrap">
+          <button type="button" id="gb-btn-select" class="pill-btn-wrap" aria-label="Select Button">
             <div class="rubber-pill"></div>
             <span class="pill-text">SELECT</span>
-          </div>
-          <div class="pill-btn-wrap">
+          </button>
+          <button type="button" id="gb-btn-start" class="pill-btn-wrap" aria-label="Start Button">
             <div class="rubber-pill"></div>
             <span class="pill-text">START</span>
-          </div>
+          </button>
         </div>
 
         <!-- Speaker Grille -->
-        <div class="gb-speaker-grille">
+        <div class="gb-speaker-grille" aria-hidden="true">
           <div class="speaker-slot"></div>
           <div class="speaker-slot"></div>
           <div class="speaker-slot"></div>

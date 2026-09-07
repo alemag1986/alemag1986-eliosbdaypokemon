@@ -367,6 +367,117 @@
   }
 
   /* ==========================================================================
+     4B. INTERACTIVE GAME BOY RETRO CONTROLS (TOUCH & CLICK SUPPORT)
+     ========================================================================== */
+  function triggerGameBoyHaptic(duration) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(duration || 20);
+      } catch (e) {
+        // Haptics fallback silent
+      }
+    }
+  }
+
+  function handleStartAction() {
+    playSynthSound('click');
+    triggerGameBoyHaptic(25);
+
+    // Visual button press feedback
+    const startBtn = document.getElementById('gb-btn-start');
+    if (startBtn) {
+      startBtn.classList.add('active-pressed');
+      setTimeout(function () {
+        startBtn.classList.remove('active-pressed');
+      }, 180);
+    }
+
+    if (!passcodeInput) {
+      unlockSite(false);
+      return;
+    }
+
+    const val = passcodeInput.value.trim().toUpperCase();
+    if (!val || val === CORRECT_PASSCODE) {
+      // Empty input or correct code: auto-fill ELIO5 and unlock the party!
+      passcodeInput.value = CORRECT_PASSCODE;
+      if (gateError) gateError.textContent = '';
+      unlockSite(false);
+    } else {
+      // Invalid code already entered: trigger miss shake & error sound
+      handlePasscodeSubmit(new Event('submit'));
+    }
+  }
+
+  function initGameBoyControls() {
+    // 1. START Button & Screen PRESS START prompt
+    const btnStart = document.getElementById('gb-btn-start');
+    const screenPressStart = document.getElementById('gb-screen-press-start');
+
+    if (btnStart) {
+      btnStart.addEventListener('click', handleStartAction);
+    }
+    if (screenPressStart) {
+      screenPressStart.addEventListener('click', handleStartAction);
+    }
+
+    // 2. Button A (Confirm / Start)
+    const btnA = document.getElementById('gb-btn-a');
+    if (btnA) {
+      btnA.addEventListener('click', function () {
+        btnA.classList.add('active-pressed');
+        setTimeout(function () {
+          btnA.classList.remove('active-pressed');
+        }, 180);
+        handleStartAction();
+      });
+    }
+
+    // 3. Button B (Cancel / Clear)
+    const btnB = document.getElementById('gb-btn-b');
+    if (btnB) {
+      btnB.addEventListener('click', function () {
+        playSynthSound('pop');
+        triggerGameBoyHaptic(15);
+        btnB.classList.add('active-pressed');
+        setTimeout(function () {
+          btnB.classList.remove('active-pressed');
+        }, 180);
+        if (passcodeInput) {
+          passcodeInput.value = '';
+          if (gateError) gateError.textContent = '';
+          passcodeInput.focus();
+        }
+      });
+    }
+
+    // 4. SELECT Button (Toggle lighting theme)
+    const btnSelect = document.getElementById('gb-btn-select');
+    if (btnSelect) {
+      btnSelect.addEventListener('click', function () {
+        playSynthSound('click');
+        triggerGameBoyHaptic(15);
+        btnSelect.classList.add('active-pressed');
+        setTimeout(function () {
+          btnSelect.classList.remove('active-pressed');
+        }, 180);
+        if (themeToggleBtn) {
+          themeToggleBtn.click();
+        }
+      });
+    }
+
+    // 5. D-Pad Directional Buttons
+    const dpadButtons = document.querySelectorAll('.dpad-btn');
+    dpadButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        playSynthSound('click');
+        triggerGameBoyHaptic(10);
+      });
+    });
+  }
+
+  /* ==========================================================================
      5. HERO FLOATING POKÉBALL INTERACTION
      ========================================================================== */
   function initFloatingPokeballs() {
@@ -1486,8 +1597,12 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    initGameBoyControls();
+
     const isUnlockedByUrl = checkUrlPasscode();
-    if (!isUnlockedByUrl && passcodeInput) {
+    // Only auto-focus on desktop / fine-pointer devices so mobile virtual keyboard doesn't occlude Game Boy
+    const isTouchMobile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (!isUnlockedByUrl && passcodeInput && !isTouchMobile) {
       setTimeout(function () {
         passcodeInput.focus();
       }, 200);
