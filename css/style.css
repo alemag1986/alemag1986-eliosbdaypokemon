@@ -1781,6 +1781,8 @@ section {
   align-items: center;
   justify-content: center;
   text-align: center;
+  width: fit-content;
+  max-width: 90%;
   margin: 0 auto 36px auto;
   position: relative;
   z-index: 4;
@@ -3222,42 +3224,35 @@ section {
   pointer-events: none;
 }
 
-/* 1. Viridian / Pallet Town Square (Details: 7 Houses neatly arranged next to each other, NOT crossing the river) */
-/* North Lawn West Neighborhood: Cleanly cleared for Route 5 sign on the left */
+/* 1. Viridian / Pallet Town Square (Details: 7 Houses, neatly spaced) */
 .viridian-square-backdrop .house-ash {
   top: 15px;
-  left: 25%;
+  left: 2%;
 }
 .viridian-square-backdrop .house-gary {
   top: 15px;
-  left: 36%;
+  left: 28%;
 }
-.viridian-square-backdrop .house-green {
-  bottom: 25px;
-  left: 24%;
-}
-
-/* North Lawn East Neighborhood: 3 houses side by side */
 .viridian-square-backdrop .house-lakeside {
   top: 15px;
-  right: 21%;
+  right: 26%;
 }
 .viridian-square-backdrop .house-yellow {
   top: 15px;
-  right: 11%;
+  right: 14%;
 }
 .viridian-square-backdrop .lab-oak {
   top: 15px;
-  right: 1%;
+  right: 2%;
 }
 
 /* Pallet Town Hall on lower right lawn, clear of canal and cards */
 .viridian-square-backdrop .house-townhall {
   bottom: 25px;
-  right: 4%;
+  right: 2%;
 }
 
-/* Scenic Blue Canal: Flows horizontally below northern residential row (which ends at 130px), canal is at 170px-310px */
+/* Scenic Blue Canal: Flows horizontally below northern residential row (ends at 145px) */
 .viridian-square-backdrop .town-canal-wrap {
   position: absolute;
   top: 170px;
@@ -3267,14 +3262,19 @@ section {
   z-index: 1;
 }
 
-/* Town Center Fountain: In open park plaza on lower left lawn, completely free and clear from any house */
+/* Town Center Fountain, Bench & Green Cottage on lower left lawn */
 .viridian-square-backdrop .square-fountain {
   position: absolute;
   bottom: 35px;
-  left: 4%;
+  left: 2%;
   z-index: 3;
   text-align: center;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
+}
+
+.viridian-square-backdrop .house-green {
+  bottom: 25px;
+  left: 21%;
 }
 
 .streetlamp {
@@ -3288,64 +3288,70 @@ section {
 .park-bench {
   position: absolute;
   bottom: 35px;
-  left: 14%;
+  left: 12%;
   z-index: 3;
 }
 
-/* 2. Safari Tall Grass & Rock Cliffs (Pokemon: 7 Houses) */
+/* 2. Safari Tall Grass & Rock Cliffs (Pokemon: 7 Houses, non-overlapping) */
 .safari-route-backdrop .cliff-ledge {
   position: absolute;
-  top: 60px;
+  top: 450px;
   z-index: 2;
   filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.3));
 }
 .safari-route-backdrop .cliff-ledge.cliff-left {
-  top: 170px;
+  top: 450px;
   left: 0;
 }
-.safari-route-backdrop .cliff-ledge.cliff-right { right: 0; }
+.safari-route-backdrop .cliff-ledge.cliff-right {
+  top: 450px;
+  right: 0;
+}
 
 .safari-route-backdrop .cabin-warden {
   top: 15px;
-  left: 26%;
+  left: 2%;
 }
 .safari-route-backdrop .house-daycare {
   top: 15px;
   right: 2%;
 }
-.safari-route-backdrop .cabin-fishing {
-  top: 180px;
-  left: 3%;
-}
-.safari-route-backdrop .house-berry {
-  top: 180px;
-  right: 3%;
-}
-.safari-route-backdrop .cabin-stone {
-  bottom: 40px;
-  left: 3%;
-}
-.safari-route-backdrop .cabin-ranger {
-  bottom: 40px;
-  right: 3%;
-}
-.safari-route-backdrop .cabin-camp {
-  top: 360px;
-  left: 4%;
-}
 
 .safari-prop.stump-left {
   position: absolute;
-  top: 290px;
-  left: 4%;
+  top: 720px;
+  left: 2%;
   z-index: 2;
 }
 
 .safari-prop.berry-right {
   position: absolute;
-  top: 290px;
-  right: 4%;
+  top: 720px;
+  right: 2%;
   z-index: 2;
+}
+
+.safari-route-backdrop .cabin-fishing {
+  top: 820px;
+  left: 2%;
+}
+.safari-route-backdrop .house-berry {
+  top: 820px;
+  right: 2%;
+}
+
+.safari-route-backdrop .cabin-camp {
+  top: 1100px;
+  left: 2%;
+}
+
+.safari-route-backdrop .cabin-stone {
+  bottom: 40px;
+  left: 2%;
+}
+.safari-route-backdrop .cabin-ranger {
+  bottom: 40px;
+  right: 2%;
 }
 
 .tallgrass-field {
@@ -3380,48 +3386,57 @@ section {
   100% { transform: skewX(6deg); }
 }
 
-/* 3. Commercial Plaza (Gifts: 8 Buildings, top-left clear for sign) */
-.commercial-plaza-backdrop .center-left {
-  position: absolute;
-  top: 150px;
-  left: 2%;
-  z-index: 2;
-  text-align: center;
-  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.25));
+/* 3. Commercial Plaza (Gifts: 8 Buildings, cleanly spaced) */
+.section-gifts {
+  min-height: 860px;
 }
 
 .commercial-plaza-backdrop .mart-right {
   position: absolute;
-  top: 55px;
+  top: 20px;
   right: 2%;
   z-index: 2;
   text-align: center;
   filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.25));
 }
 
+.commercial-plaza-backdrop .center-left {
+  position: absolute;
+  top: 170px;
+  left: 2%;
+  z-index: 2;
+  text-align: center;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.25));
+}
+
 .commercial-plaza-backdrop .bldg-dept {
-  top: 15px;
-  left: 26%;
+  top: 340px;
+  left: 2%;
 }
-.commercial-plaza-backdrop .bldg-game {
-  top: 15px;
-  right: 14%;
-}
+
 .commercial-plaza-backdrop .bldg-bike {
-  top: 200px;
-  left: 3%;
+  top: 510px;
+  left: 2%;
 }
-.commercial-plaza-backdrop .bldg-boutique {
-  top: 200px;
-  right: 3%;
-}
+
 .commercial-plaza-backdrop .bldg-bakery {
-  bottom: 30px;
-  left: 4%;
+  top: 680px;
+  left: 2%;
 }
+
+.commercial-plaza-backdrop .bldg-game {
+  top: 190px;
+  right: 2%;
+}
+
+.commercial-plaza-backdrop .bldg-boutique {
+  top: 360px;
+  right: 2%;
+}
+
 .commercial-plaza-backdrop .bldg-townhome {
-  bottom: 30px;
-  right: 4%;
+  top: 530px;
+  right: 2%;
 }
 
 .town-banner-arch {
@@ -3433,10 +3448,14 @@ section {
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
 }
 
-/* 4. Chuck E. Cheese Victory Gym Arena (RSVP: 7 Buildings, top-left clear for sign) */
+/* 4. Chuck E. Cheese Victory Gym Arena (RSVP: 7 Buildings, non-overlapping) */
+.section-rsvp .section-heading-wrap {
+  margin-top: 70px;
+}
+
 .victory-gym-backdrop .gym-arena-building {
   position: absolute;
-  top: 20px;
+  top: 10px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
@@ -3445,37 +3464,42 @@ section {
 }
 
 .victory-gym-backdrop .villa-champion {
-  top: 150px;
+  top: 190px;
   left: 2%;
 }
+
 .victory-gym-backdrop .bldg-guild {
   top: 20px;
   right: 2%;
 }
+
 .victory-gym-backdrop .house-rest {
-  top: 180px;
-  left: 3%;
+  top: 460px;
+  left: 2%;
 }
+
 .victory-gym-backdrop .house-lodge {
-  top: 180px;
-  right: 3%;
+  top: 240px;
+  right: 2%;
 }
+
 .victory-gym-backdrop .house-archive {
-  bottom: 35px;
-  left: 4%;
+  bottom: 25px;
+  left: 2%;
 }
+
 .victory-gym-backdrop .house-elite {
-  bottom: 35px;
-  right: 4%;
+  bottom: 25px;
+  right: 2%;
 }
 
 .gym-statue {
   position: absolute;
-  top: 80px;
+  top: 75px;
   z-index: 3;
 }
-.statue-left { left: 36%; }
-.statue-right { right: 36%; }
+.statue-left { left: 37%; }
+.statue-right { right: 37%; }
 
 /* Responsive Scaling for town buildings */
 @media (max-width: 900px) {
@@ -3487,22 +3511,17 @@ section {
 }
 
 @media (max-width: 768px) {
-  .town-building,
-  .town-house {
-    transform: scale(0.68);
-    transform-origin: top center;
-    opacity: 0.9;
+  .overworld-town-backdrop .town-building,
+  .overworld-town-backdrop .town-house,
+  .overworld-town-backdrop .cliff-ledge,
+  .overworld-town-backdrop .safari-prop,
+  .overworld-town-backdrop .gym-statue,
+  .overworld-town-backdrop .town-banner-arch,
+  .overworld-town-backdrop .square-fountain,
+  .overworld-town-backdrop .park-bench,
+  .overworld-town-backdrop .streetlamp {
+    display: none !important;
   }
-
-  .viridian-square-backdrop .house-gary,
-  .viridian-square-backdrop .house-green,
-  .viridian-square-backdrop .house-yellow,
-  .viridian-square-backdrop .house-lakeside {
-    display: none;
-  }
-  .viridian-square-backdrop .house-ash { left: 4%; }
-  .viridian-square-backdrop .lab-oak { right: 4%; }
-  #details .details-grid { margin-top: 85px; }
 
   .cliff-ledge svg {
     width: 90px;
