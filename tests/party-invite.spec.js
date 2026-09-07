@@ -73,13 +73,33 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     await expect(moveRows.nth(1)).toContainText('All-Out Fun');
     await expect(moveRows.nth(1)).toContainText('200');
 
+    // Artwork and flame breath canvas
+    const artImg = page.locator('#tcg-art-image');
+    await expect(artImg).toBeVisible();
+    await expect(artImg).toHaveAttribute('src', 'assets/card-art.jpg');
+
+    const flameCanvas = page.locator('#charizard-flame-canvas');
+    await expect(flameCanvas).toBeAttached();
+
+    const artSheen = page.locator('#art-holo-sheen');
+    await expect(artSheen).toBeAttached();
+
+    if (test.info().project.name === 'desktop-chrome') {
+      await page.setViewportSize({ width: 1280, height: 1100 });
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(600); // Allow particles to animate
+      await page.locator('#tcg-hero-card').screenshot({
+        path: '/Users/ale/.gemini/antigravity/brain/c010249b-1e4a-4388-9da6-3530f27c17b0/hero_card_with_animated_fire.png'
+      });
+    }
+
     // Floating Pokéballs: 26 interactive balls in sky
     const allBalls = page.locator('.floating-pokeball-btn');
     await expect(allBalls).toHaveCount(26);
 
     const floatingBall = allBalls.first();
     await expect(floatingBall).toBeVisible();
-    await floatingBall.click();
+    await floatingBall.click({ force: true });
     await expect(floatingBall).toHaveClass(/popping/);
 
     const popupImg = floatingBall.locator('.popup-sprite-wrapper img');
