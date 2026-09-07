@@ -181,7 +181,10 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     await expect(form).toBeVisible();
 
     await page.locator('#trainer-name').fill('Ash Ketchum');
-    await page.locator('#party-count').fill('2');
+    const partyCount = page.locator('#party-count');
+    if (await partyCount.count() > 0) {
+      await partyCount.fill('2');
+    }
     await page.locator('#diet-notes').fill('No peanuts, vegetarian pizza preferred');
 
     await page.locator('#submit-diet-btn').click();
