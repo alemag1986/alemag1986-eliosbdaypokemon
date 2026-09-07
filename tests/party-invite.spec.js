@@ -76,10 +76,13 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     // Artwork and flame breath canvas
     const artImg = page.locator('#tcg-art-image');
     await expect(artImg).toBeVisible();
-    await expect(artImg).toHaveAttribute('src', 'assets/card-art.jpg');
+    await expect(artImg).toHaveAttribute('src', 'assets/pokemon-card-original.jpg');
 
     const flameCanvas = page.locator('#charizard-flame-canvas');
     await expect(flameCanvas).toBeAttached();
+
+    const mouthGlow = page.locator('#charizard-mouth-glow');
+    await expect(mouthGlow).toBeAttached();
 
     const artSheen = page.locator('#art-holo-sheen');
     await expect(artSheen).toBeAttached();
@@ -88,7 +91,7 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
       await page.setViewportSize({ width: 1280, height: 1100 });
       await page.evaluate(() => window.scrollTo(0, 0));
       await page.waitForTimeout(600); // Allow particles to animate
-      await page.locator('#tcg-hero-card').screenshot({
+      await page.locator('#hero-card-stage').screenshot({
         path: '/Users/ale/.gemini/antigravity/brain/c010249b-1e4a-4388-9da6-3530f27c17b0/hero_card_with_animated_fire.png'
       });
     }
@@ -127,6 +130,12 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     await expect(details).toContainText('Gaby');
     await expect(details).toContainText('(786) 838-5648');
     await expect(details).toContainText('October 10th');
+
+    // Check RSVP card links
+    const rsvpPhoneLink = page.locator('.card-rsvp a[href="tel:7868385648"]');
+    await expect(rsvpPhoneLink).toBeVisible();
+    const rsvpSectionLink = page.locator('.card-rsvp a[href="#rsvp"]');
+    await expect(rsvpSectionLink).toBeVisible();
 
     // Check Google Calendar button href
     const calendarBtn = page.locator('#btn-add-calendar');

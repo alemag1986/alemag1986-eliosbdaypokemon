@@ -1209,7 +1209,7 @@ body {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 490px;
+  max-width: 440px;
   margin: 0 auto;
 }
 
@@ -1219,18 +1219,80 @@ body {
 
 .tcg-pokemon-card {
   position: relative;
-  background: linear-gradient(135deg, #f0ede6 0%, #ffffff 35%, #e8e4db 100%);
-  border: 6px solid var(--ink);
-  border-radius: 22px;
-  padding: 16px 14px;
+  width: 100%;
+  aspect-ratio: 717 / 1024;
+  margin: 0 auto;
+  border-radius: 24px;
+  overflow: visible;
   box-shadow:
-    0 0 0 3px #ffffff,
-    0 0 0 7px #dcdcdc,
-    0 0 0 11px var(--ink),
-    0 22px 45px rgba(0, 0, 0, 0.35),
+    0 0 0 2px rgba(255, 255, 255, 0.35),
+    0 24px 50px rgba(0, 0, 0, 0.45),
+    0 4px 14px rgba(0, 0, 0, 0.25),
     var(--shadow-comic-xl);
-  overflow: hidden;
   transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+  cursor: pointer;
+  user-select: none;
+  background: #111;
+}
+
+.tcg-card-original-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+.charizard-mouth-glow {
+  position: absolute;
+  left: 57.5%;
+  top: 26.6%;
+  width: 54px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 230, 0.98) 0%,
+    rgba(255, 175, 20, 0.88) 35%,
+    rgba(255, 60, 0, 0.5) 65%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 3;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  animation: mouthPulse 0.35s ease-in-out infinite alternate;
+  transition: opacity 0.4s ease;
+}
+
+@keyframes mouthPulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.88);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 1;
+  }
+}
+
+.charizard-mouth-canvas,
+.charizard-flame-canvas {
+  position: absolute;
+  top: -100px;
+  right: -140px;
+  bottom: 0;
+  left: 0;
+  width: calc(100% + 140px);
+  height: calc(100% + 100px);
+  pointer-events: none;
+  z-index: 15;
 }
 
 .card-holo-glare {
@@ -1627,6 +1689,7 @@ body {
 
 .hero-cta-wrap {
   text-align: center;
+  margin-top: 18px;
 }
 
 .card-cta-btn {
@@ -1742,6 +1805,7 @@ section {
   position: relative;
   padding: 60px 16px 80px 16px;
   border-bottom: 5px solid var(--ink);
+  scroll-margin-top: 60px;
 }
 
 .content-container {
@@ -2012,18 +2076,35 @@ section {
   border-radius: 6px;
 }
 
+.card-action-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
 .card-action-link {
   display: inline-block;
   font-family: var(--font-pixel);
   font-size: 0.65rem;
   color: var(--poke-blue);
   text-decoration: underline;
-  padding: 6px 4px;
-  transition: color 0.15s;
+  padding: 4px 6px;
+  transition: color 0.15s, transform 0.15s;
 }
 
 .card-action-link:hover {
   color: var(--poke-red);
+}
+
+.card-action-link.card-action-link-page {
+  color: var(--poke-red);
+}
+
+.card-action-link.card-action-link-page:hover {
+  color: #c0392b;
+  transform: translateY(-1px);
 }
 
 .calendar-action-wrap {

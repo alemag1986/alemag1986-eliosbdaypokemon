@@ -873,6 +873,9 @@
       if (!formData.has('message') && formData.has('dietNotes')) {
         formData.append('message', formData.get('dietNotes'));
       }
+      if (countInput && countInput.value) {
+        formData.set('guests', countInput.value);
+      }
 
       const totalHealingDuration = (healSlots && healSlots.length > 0) ? healSlots.length * 110 + 200 : 400;
       const animDelay = new Promise(function (resolve) {
@@ -998,31 +1001,83 @@
   }
 
   /* ==========================================================================
-     11. CHARIZARD ANIMATED FIRE BREATH ENGINE
+     11. CHARIZARD ANIMATED FIRE BREATH ENGINE (SMOOTH 60FPS, 5s ON / 5s OFF)
      ========================================================================== */
   function initCharizardFlame() {
     const canvas = document.getElementById('charizard-flame-canvas');
-    const frame = document.getElementById('tcg-art-frame');
-    const glow = document.getElementById('charizard-fire-glow');
-    if (!canvas || !frame) return;
+    const card = document.getElementById('tcg-hero-card');
+    const glow = document.getElementById('charizard-mouth-glow');
+    if (!canvas || !card) return;
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    const PADDING_TOP = 100;
+    const PADDING_RIGHT = 140;
+
     let width = 0;
     let height = 0;
+    let cardWidth = 0;
+    let cardHeight = 0;
     let dpr = 1;
-    let particles = [];
-    let surgeTimer = 0;
-    let isSurging = false;
-    let time = 0;
+    let cycleStartTime = performance.now();
+    let lastTime = performance.now();
+    let wasFiring = false;
+
+    // 1. Pre-render flame textures once on tiny offscreen canvases (zero CPU shadowBlur per frame)
+    function createOffscreenTexture(size, drawFn) {
+      const offscreen = document.createElement('canvas');
+      offscreen.width = size;
+      offscreen.height = size;
+      const octx = offscreen.getContext('2d');
+      drawFn(octx, size / 2, size / 2, size / 2);
+      return offscreen;
+    }
+
+    const coreTexture = createOffscreenTexture(64, function (c, cx, cy, r) {
+      const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.3, 'rgba(255, 245, 160, 0.92)');
+      grad.addColorStop(0.65, 'rgba(255, 160, 20, 0.45)');
+      grad.addColorStop(1, 'rgba(255, 100, 0, 0)');
+      c.fillStyle = grad;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    const flameTexture = createOffscreenTexture(80, function (c, cx, cy, r) {
+      const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, 'rgba(255, 230, 110, 0.95)');
+      grad.addColorStop(0.3, 'rgba(255, 130, 20, 0.82)');
+      grad.addColorStop(0.65, 'rgba(235, 45, 10, 0.45)');
+      grad.addColorStop(1, 'rgba(180, 20, 0, 0)');
+      c.fillStyle = grad;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    const emberTexture = createOffscreenTexture(32, function (c, cx, cy, r) {
+      const grad = c.createRadialGradient(cx, cy, 0, cx, cy, r);
+      grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      grad.addColorStop(0.35, 'rgba(255, 215, 0, 0.9)');
+      grad.addColorStop(0.75, 'rgba(255, 100, 20, 0.4)');
+      grad.addColorStop(1, 'rgba(255, 50, 0, 0)');
+      c.fillStyle = grad;
+      c.beginPath();
+      c.arc(cx, cy, r, 0, Math.PI * 2);
+      c.fill();
+    });
 
     function resize() {
-      const rect = frame.getBoundingClientRect();
+      const rect = card.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
+      cardWidth = rect.width;
+      cardHeight = rect.height;
+      width = cardWidth + PADDING_RIGHT;
+      height = cardHeight + PADDING_TOP;
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      width = rect.width;
-      height = rect.height;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -1033,172 +1088,155 @@
 
     if (prefersReducedMotion) return;
 
-    class FlameParticle {
-      constructor(originX, originY, isBlast) {
-        this.reset(originX, originY, isBlast);
+    // 2. Pre-allocated Particle Pool (zero GC stutter)
+    class FluidFlameParticle {
+      constructor() {
+        this.active = false;
+        this.x = 0;
+        this.y = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.life = 0;
+        this.maxLife = 1;
+        this.texture = flameTexture;
+        this.baseSize = 20;
+        this.growth = 1;
+        this.phase = 0;
+        this.phaseSpeed = 0.1;
       }
 
-      reset(originX, originY, isBlast) {
+      spawn(originX, originY) {
+        this.active = true;
         this.x = originX + (Math.random() - 0.5) * 6;
         this.y = originY + (Math.random() - 0.5) * 6;
 
-        // Trajectory pointing towards upper right corner (-24 degrees angle)
-        const baseAngle = -0.42 + (Math.random() - 0.5) * (isBlast ? 0.65 : 0.38);
-        const speed = isBlast ? (5.0 + Math.random() * 4.5) : (2.6 + Math.random() * 3.2);
+        const angle = -0.58 + (Math.random() - 0.5) * 0.28;
+        const speed = 7.0 + Math.random() * 7.5;
 
-        this.vx = Math.cos(baseAngle) * speed;
-        this.vy = Math.sin(baseAngle) * speed - (0.2 + Math.random() * 0.35);
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed - (0.1 + Math.random() * 0.25);
 
-        this.maxLife = isBlast ? (35 + Math.random() * 30) : (45 + Math.random() * 35);
+        this.maxLife = 36 + Math.random() * 26;
         this.life = this.maxLife;
 
         const rand = Math.random();
-        if (rand < 0.28) {
-          this.type = 'core'; // Bright white-yellow plasma core
-          this.baseSize = 4 + Math.random() * 4;
-          this.growth = 0.28;
-        } else if (rand < 0.76) {
-          this.type = 'flame'; // Expanding fiery orange/red tongue
-          this.baseSize = 6 + Math.random() * 8;
-          this.growth = 0.52;
-        } else if (rand < 0.92) {
-          this.type = 'ember'; // Crackling golden sparks
-          this.baseSize = 2 + Math.random() * 2.5;
-          this.growth = -0.01;
-        } else {
-          this.type = 'smoke'; // Subtle smoke puff
-          this.baseSize = 7 + Math.random() * 8;
+        if (rand < 0.32) {
+          this.texture = coreTexture;
+          this.baseSize = 14;
           this.growth = 0.55;
+        } else if (rand < 0.82) {
+          this.texture = flameTexture;
+          this.baseSize = 20;
+          this.growth = 1.25;
+        } else {
+          this.texture = emberTexture;
+          this.baseSize = 8;
+          this.growth = 0.2;
         }
 
-        this.wobblePhase = Math.random() * Math.PI * 2;
-        this.wobbleSpeed = 0.08 + Math.random() * 0.08;
+        this.phase = Math.random() * Math.PI * 2;
+        this.phaseSpeed = 0.08 + Math.random() * 0.08;
       }
 
-      update() {
-        this.life--;
-        this.wobblePhase += this.wobbleSpeed;
-        this.x += this.vx + Math.sin(this.wobblePhase) * 0.7;
-        this.y += this.vy + Math.cos(this.wobblePhase) * 0.5;
-        this.vx *= 0.988;
-        this.vy *= 0.988;
+      update(dt) {
+        this.life -= dt;
+        if (this.life <= 0) {
+          this.active = false;
+          return;
+        }
+        this.phase += this.phaseSpeed * dt;
+        this.x += (this.vx + Math.sin(this.phase) * 1.1) * dt;
+        this.y += (this.vy + Math.cos(this.phase) * 0.7) * dt;
       }
 
       draw(c) {
+        if (!this.active) return;
         const progress = 1 - (this.life / this.maxLife);
-        const alpha = Math.sin((1 - progress) * Math.PI * 0.5);
+        const alpha = Math.sin(progress * Math.PI);
         if (alpha <= 0.01) return;
 
-        const currentSize = Math.max(1, this.baseSize + progress * this.growth * 22);
-        c.save();
-        c.globalAlpha = Math.max(0, Math.min(1, alpha));
-
-        if (this.type === 'core') {
-          c.fillStyle = '#ffffff';
-          c.shadowColor = '#ffeaa7';
-          c.shadowBlur = 8;
-          c.beginPath();
-          c.arc(this.x, this.y, currentSize * 0.7, 0, Math.PI * 2);
-          c.fill();
-        } else if (this.type === 'flame') {
-          const grad = c.createRadialGradient(this.x, this.y, 0, this.x, this.y, currentSize);
-          grad.addColorStop(0, 'rgba(255, 245, 170, 0.95)');
-          grad.addColorStop(0.35, 'rgba(255, 125, 20, 0.85)');
-          grad.addColorStop(0.75, 'rgba(235, 45, 10, 0.6)');
-          grad.addColorStop(1, 'rgba(180, 20, 0, 0)');
-          c.fillStyle = grad;
-          c.beginPath();
-          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
-          c.fill();
-        } else if (this.type === 'ember') {
-          c.fillStyle = '#ffd700';
-          c.shadowColor = '#ff7675';
-          c.shadowBlur = 5;
-          c.beginPath();
-          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
-          c.fill();
-        } else if (this.type === 'smoke') {
-          c.fillStyle = 'rgba(60, 25, 15, ' + (alpha * 0.35) + ')';
-          c.beginPath();
-          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
-          c.fill();
-        }
-
-        c.restore();
+        const size = this.baseSize + progress * this.growth * 30;
+        c.globalAlpha = alpha;
+        c.drawImage(this.texture, this.x - size / 2, this.y - size / 2, size, size);
       }
     }
 
-    function spawnBurst(count, isBlast) {
-      // Charizard mouth anchor in calibrated art frame
-      const originX = width * 0.57;
-      const originY = height * 0.22;
-      for (let i = 0; i < count; i++) {
-        particles.push(new FlameParticle(originX, originY, isBlast));
-      }
+    const POOL_SIZE = 180;
+    const pool = [];
+    for (let i = 0; i < POOL_SIZE; i++) {
+      pool.push(new FluidFlameParticle());
     }
 
-    // Interactive Flamethrower on click/tap
-    frame.addEventListener('click', function () {
-      spawnBurst(42, true);
+    // Interactive Trigger: click restarts the 5-second fire burst immediately
+    card.addEventListener('click', function () {
+      cycleStartTime = performance.now();
       playSynthSound('flame');
-      if (glow) {
-        glow.style.transform = 'scale(1.15)';
-        glow.style.opacity = '1';
-        setTimeout(function () {
-          glow.style.transform = '';
-          glow.style.opacity = '';
-        }, 400);
-      }
     });
 
-    function loop() {
-      time++;
+    function loop(now) {
       if (width === 0 || height === 0) {
         resize();
       }
 
+      // Smooth delta-time calculation (clamped to prevent jumps after tab blur)
+      const dt = Math.min((now - lastTime) / 16.67, 2.0);
+      lastTime = now;
+
       ctx.clearRect(0, 0, width, height);
 
-      // Periodic dragon breathing surge (every ~180 frames / 3 seconds)
-      surgeTimer++;
-      if (surgeTimer % 180 === 0) {
-        isSurging = true;
-      }
-      if (surgeTimer % 180 === 45) {
-        isSurging = false;
+      // Smooth 5s ON / 5s OFF loop with natural ignition & fade
+      const elapsed = (now - cycleStartTime) % 10000;
+      let intensity = 0;
+      if (elapsed < 400) {
+        intensity = elapsed / 400; // Gentle 0.4s ignition
+      } else if (elapsed < 4500) {
+        intensity = 1.0;          // Full blazing torrent
+      } else if (elapsed < 5000) {
+        intensity = (5000 - elapsed) / 500; // Smooth 0.5s dissipation
       }
 
-      // Continuous emission from mouth
-      const spawnRate = isSurging ? 4 : 2;
-      spawnBurst(spawnRate, isSurging);
+      const isFiring = intensity > 0.01;
 
-      // Charizard tail flame embers on the left
-      if (time % 6 === 0) {
-        const tailX = width * 0.08 + (Math.random() - 0.5) * 6;
-        const tailY = height * 0.40 + (Math.random() - 0.5) * 6;
-        const p = new FlameParticle(tailX, tailY, false);
-        p.vx = (Math.random() - 0.5) * 0.7;
-        p.vy = -1.2 - Math.random() * 1.0;
-        p.type = 'ember';
-        p.maxLife = 28;
-        p.life = 28;
-        particles.push(p);
+      if (glow) {
+        if (isFiring) {
+          glow.style.opacity = (0.2 + intensity * 0.8).toFixed(2);
+        } else {
+          glow.style.opacity = '0.15';
+        }
+      }
+
+      if (isFiring && !wasFiring && elapsed < 800) {
+        playSynthSound('flame');
+      }
+      wasFiring = isFiring;
+
+      // Spawn fluid stream particles when firing
+      if (isFiring) {
+        const count = Math.round(6 * intensity);
+        const originX = cardWidth * 0.575;
+        const originY = PADDING_TOP + cardHeight * 0.266;
+        for (let i = 0; i < count; i++) {
+          for (let j = 0; j < POOL_SIZE; j++) {
+            if (!pool[j].active) {
+              pool[j].spawn(originX, originY);
+              break;
+            }
+          }
+        }
       }
 
       ctx.globalCompositeOperation = 'screen';
 
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.update();
-        if (p.life <= 0 || p.x > width + 30 || p.y < -30) {
-          particles.splice(i, 1);
-        } else {
-          p.draw(ctx);
+      for (let i = 0; i < POOL_SIZE; i++) {
+        const p = pool[i];
+        if (p.active) {
+          p.update(dt);
+          if (p.x > width + 20 || p.y < -20) {
+            p.active = false;
+          } else {
+            p.draw(ctx);
+          }
         }
-      }
-
-      if (particles.length > 160) {
-        particles.splice(0, particles.length - 160);
       }
 
       requestAnimationFrame(loop);

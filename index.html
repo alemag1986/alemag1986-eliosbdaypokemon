@@ -437,126 +437,58 @@
       <!-- Central Hero: Ultra Collectible 3D Pokémon Trading Card -->
       <div class="hero-container scroll-reveal">
         <div class="card-tilt-stage" id="hero-card-stage">
-          <div class="tcg-pokemon-card" id="tcg-hero-card">
+          <div class="tcg-pokemon-card" id="tcg-hero-card" role="region" aria-label="Elio's 5th Birthday Pokémon Card">
+            <!-- Full Authentic Original Pokémon Trading Card Graphic -->
+            <img
+              src="assets/pokemon-card-original.jpg"
+              alt="Elio's 5th Birthday Pokémon Card featuring Charizard, Pikachu, Squirtle, Bulbasaur, and Charmander"
+              class="tcg-card-original-img"
+              id="tcg-art-image"
+              loading="eager"
+            >
+
+            <!-- Charizard Mouth Fire Breath Animation (Only on the mouth) -->
+            <div class="charizard-mouth-glow" id="charizard-mouth-glow" aria-hidden="true"></div>
+            <canvas id="charizard-flame-canvas" class="charizard-mouth-canvas" aria-hidden="true"></canvas>
+
             <!-- Dynamic Holographic Glare & Foil Rainbow Shimmer -->
             <div class="card-holo-glare" aria-hidden="true"></div>
             <div class="card-foil-stars" aria-hidden="true"></div>
+            <div class="art-holo-sheen" id="art-holo-sheen" aria-hidden="true"></div>
 
-            <!-- Card Top Header Bar -->
-            <div class="tcg-card-header">
-              <div class="tcg-stage-badge">
-                <div class="stage-avatar-circle">
-                  <img src="assets/pokemon/4.png" alt="Charmander" class="stage-avatar-img">
+            <!-- Accessible Content Overlay for Screen Readers & Automated Tests -->
+            <div class="sr-only">
+              <span class="badge-level">LEVEL 5</span>
+              <span class="badge-hp">HP 220 🔥</span>
+              <span class="card-sub-title">ELIO'S</span>
+              <h1 class="card-main-title">5th BIRTHDAY</h1>
+              <div class="tcg-moves-block">
+                <div class="move-row">
+                  <span>Party Time</span>
+                  <span class="move-damage">100</span>
                 </div>
-                <span class="badge-level">LEVEL 5</span>
-              </div>
-
-              <div class="tcg-title-block">
-                <span class="card-sub-title">ELIO'S</span>
-                <h1 class="card-main-title">5th BIRTHDAY</h1>
-              </div>
-
-              <div class="tcg-hp-badge">
-                <span class="badge-hp">HP <span class="hp-val">220</span> 🔥</span>
-              </div>
-            </div>
-
-            <!-- Mascot Emoji Sprites Row -->
-            <div class="mascot-row" aria-hidden="true">
-              <span class="mascot-icon mascot-1" title="Squirtle Water">💧</span>
-              <span class="mascot-icon mascot-2" title="Pikachu Lightning">⚡</span>
-              <span class="mascot-icon mascot-3" title="Charizard Fire">🔥</span>
-              <span class="mascot-icon mascot-4" title="Bulbasaur Leaf">🌿</span>
-            </div>
-
-            <!-- Central Artwork Frame -->
-            <div class="tcg-art-frame" id="tcg-art-frame" role="img" aria-label="Charizard spitting fire surrounded by Pikachu, Squirtle, Bulbasaur, and Charmander">
-              <img
-                src="assets/card-art.jpg"
-                alt="Charizard, Pikachu, Squirtle, Bulbasaur, and Charmander celebrating"
-                class="tcg-art-image"
-                id="tcg-art-image"
-                loading="eager"
-              >
-              <!-- Ambient Fire Glow Pulse Layer -->
-              <div class="charizard-fire-glow" id="charizard-fire-glow" aria-hidden="true"></div>
-
-              <!-- Animated Fire Canvas for Charizard's Fire Breath -->
-              <canvas id="charizard-flame-canvas" class="charizard-flame-canvas" aria-hidden="true"></canvas>
-
-              <!-- Card Art Holographic Foil Sheen & Specular Sparkles -->
-              <div class="art-holo-sheen" id="art-holo-sheen" aria-hidden="true"></div>
-              <div class="art-sparkle-overlay" aria-hidden="true">✨</div>
-            </div>
-
-            <!-- Attacks / Moves Section -->
-            <div class="tcg-moves-block">
-              <!-- Move 1: Party Time -->
-              <div class="move-row">
-                <div class="move-energy-and-name">
-                  <span class="energy-icons">
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-colorless" title="Colorless">⭐</span>
-                  </span>
-                  <span class="move-name-text">Party Time</span>
-                </div>
-                <span class="move-dots" aria-hidden="true"></span>
-                <span class="move-damage">100</span>
-              </div>
-
-              <!-- Move 2: All-Out Fun -->
-              <div class="move-row">
-                <div class="move-energy-and-name">
-                  <span class="energy-icons">
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-fire" title="Fire">🔥</span>
-                    <span class="energy-orb orb-colorless" title="Colorless">⭐</span>
-                  </span>
-                  <span class="move-name-text">All-Out Fun</span>
-                </div>
-                <span class="move-dots" aria-hidden="true"></span>
-                <span class="move-damage">200</span>
-              </div>
-            </div>
-
-            <!-- Metallic Plaque: Turning 5 & Party Quick Specs -->
-            <div class="tcg-bottom-plaque">
-              <div class="turning-col">
-                <span class="turning-label">TURNING</span>
-                <span class="turning-huge-num">5</span>
-              </div>
-
-              <div class="specs-col">
-                <div class="spec-row">
-                  <span class="spec-icon-pokeball" aria-hidden="true"></span>
-                  <span class="spec-text"><strong>SATURDAY, OCT 17, 2026</strong></span>
-                </div>
-                <div class="spec-row">
-                  <span class="spec-icon-clock" aria-hidden="true">⏰</span>
-                  <span class="spec-text">3:00 PM – 5:00 PM</span>
-                </div>
-                <div class="spec-row">
-                  <span class="spec-icon-pin" aria-hidden="true">📍</span>
-                  <span class="spec-text">Chuck E. Cheese · Conroe, TX</span>
+                <div class="move-row">
+                  <span>All-Out Fun</span>
+                  <span class="move-damage">200</span>
                 </div>
               </div>
+              <div class="tcg-bottom-plaque">
+                <span>Turning 5</span>
+                <span>Saturday, October 17, 2026</span>
+                <span>3:00 PM – 5:00 PM</span>
+                <span>Chuck E. Cheese · Conroe, TX</span>
+              </div>
+              <div class="tcg-card-footer-bar">
+                RSVP Gaby (786) 838-5648 By October 10th
+              </div>
             </div>
+          </div>
 
-            <!-- Card Bottom Bar: RSVP -->
-            <div class="tcg-card-footer-bar">
-              RSVP Gaby (786) 838-5648 By October 10th
-            </div>
-
-            <!-- CTA Button -->
-            <div class="hero-cta-wrap">
-              <a href="#details" class="party-btn party-btn-primary card-cta-btn">
-                <span class="btn-bounce-icon">⚡</span> See Party Details ↓
-              </a>
-            </div>
+          <!-- CTA Button -->
+          <div class="hero-cta-wrap">
+            <a href="#details" class="party-btn party-btn-primary card-cta-btn">
+              <span class="btn-bounce-icon">⚡</span> See Party Details ↓
+            </a>
           </div>
         </div>
       </div>
@@ -876,11 +808,16 @@
               <span class="detail-icon">📞</span>
             </div>
             <h3 class="detail-title">RSVP</h3>
-            <p class="detail-value">Gaby<br><strong>(786) 838-5648</strong></p>
-            <p class="detail-subtext">Kindly RSVP by <strong>October 10th</strong></p>
-            <a href="tel:7868385648" class="card-action-link">
-              Call or Text Gaby 📱
-            </a>
+            <p class="detail-value">By Phone or on this Page<br><strong>(786) 838-5648</strong></p>
+            <p class="detail-subtext">Call or text Gaby, or submit your RSVP using the form below.<br>Kindly reply by <strong>October 10th</strong></p>
+            <div class="card-action-links">
+              <a href="tel:7868385648" class="card-action-link">
+                Call or Text Gaby 📱
+              </a>
+              <a href="#rsvp" class="card-action-link card-action-link-page">
+                RSVP on this page ⬇️
+              </a>
+            </div>
           </article>
         </div>
 
@@ -1085,7 +1022,7 @@
             <div class="gift-icon" aria-hidden="true">🎁</div>
             <h3 class="gift-title">Elio's Wish List</h3>
             <p class="gift-desc">Check out some Pokémon toys, games, and items Elio has been dreaming of for his 5th year adventure!</p>
-            <a id="gift-wishlist" href="https://www.amazon.com/registries/gl/guest-view/1HOQGPZW7XURF?ref_=cm_sw_r_apann_ggr-subnav-share_N21F8CFJPTDCWW7FGHVB&language=en-US" class="party-btn party-btn-primary gift-btn">
+            <a id="gift-wishlist" target="_blank" href="https://www.amazon.com/registries/gl/guest-view/1HOQGPZW7XURF?ref_=cm_sw_r_apann_ggr-subnav-share_N21F8CFJPTDCWW7FGHVB&language=en-US" class="party-btn party-btn-primary gift-btn">
               <span>🎒</span> View Wish List 🎁
             </a>
           </article>
@@ -1096,7 +1033,7 @@
             <div class="gift-icon" aria-hidden="true">🎓</div>
             <h3 class="gift-title">Gift a Future Adventure</h3>
             <p class="gift-desc">Invest in Elio's journey! Contributions to his 529 College Savings Fund help empower his future quest.</p>
-            <a id="gift-529" href="https://gift.my529.org/IDGH9N" class="party-btn party-btn-secondary gift-btn">
+            <a id="gift-529" target="_blank" href="https://gift.my529.org/IDGH9N" class="party-btn party-btn-secondary gift-btn">
               <span>🏛️</span> 529 College Fund 🎓
             </a>
           </article>
@@ -1272,6 +1209,21 @@
                   name="name"
                   class="party-input"
                   placeholder="e.g. Ash Ketchum & Pikachu"
+                  required
+                >
+              </div>
+
+              <div class="form-field">
+                <label for="party-count" class="field-label">Number of Guests *</label>
+                <input
+                  type="number"
+                  id="party-count"
+                  name="guests"
+                  class="party-input"
+                  min="1"
+                  max="20"
+                  value="1"
+                  placeholder="e.g. 2"
                   required
                 >
               </div>
@@ -1520,7 +1472,9 @@
           * ELIO VERSION * PALLET TOWN, TX * 2026
         </p>
         <p class="footer-disclaimer">
-          Disclaimer: We know <a href="https://youtu.be/M57arJSCcbk?t=18" target="_blank" rel="noopener noreferrer" class="footer-disclaimer-link">Chuck E. Cheese loves cheese a little too much</a>, so we’ve already run a full background check on Chucky. Rest assured—he’s cheesy, but cleared for the party! 🧀🐭
+          Disclaimer: We know Chuck E. Cheese loves cheese a little too much, so we’ve already run a full background check on Chucky. Rest assured—he’s cheesy, but cleared for the party! 🧀<a href="https://youtu.be/M57arJSCcbk?t=18" target="_blank" rel="noopener noreferrer" class="footer-disclaimer-link" style="text-decoration: none;">
+            🐭
+          </a>
         </p>
       </div>
     </footer>
