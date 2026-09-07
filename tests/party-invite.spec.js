@@ -174,10 +174,18 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     expect(totalCards % mobileCols).toBe(0);
   });
 
-  test('Diet Restrictions Form: submission should show success card', async ({ page }) => {
+  test('RSVP Form: submission should show success card', async ({ page }) => {
+    await page.route('**/api.web3forms.com/**', route =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, message: 'Submission successful' }),
+      })
+    );
+
     await page.goto('/?code=ELIO5');
 
-    const form = page.locator('#diet-form');
+    const form = page.locator('#rsvp-form, #diet-form').first();
     await expect(form).toBeVisible();
 
     await page.locator('#trainer-name').fill('Ash Ketchum');
@@ -187,11 +195,11 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     }
     await page.locator('#diet-notes').fill('No peanuts, vegetarian pizza preferred');
 
-    await page.locator('#submit-diet-btn').click();
+    await page.locator('#submit-rsvp-btn, #submit-diet-btn').first().click();
 
     // Form should be hidden and success message displayed
     await expect(form).not.toBeVisible();
-    const successCard = page.locator('#diet-success-message');
+    const successCard = page.locator('#rsvp-success-message, #diet-success-message').first();
     await expect(successCard).toBeVisible();
     await expect(successCard).toContainText('Registered in Pokédex!');
     await expect(successCard).toContainText('Thanks, Trainer! Your info has been noted.');

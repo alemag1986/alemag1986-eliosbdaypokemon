@@ -21,8 +21,10 @@
   const pokemonGrid = document.getElementById('pokemon-grid');
   const wildDialogBox = document.getElementById('wild-dialog-box');
   const wildDialogText = document.getElementById('wild-dialog-text');
-  const dietForm = document.getElementById('diet-form');
-  const dietSuccessMessage = document.getElementById('diet-success-message');
+  const rsvpForm = document.getElementById('rsvp-form') || document.getElementById('diet-form');
+  const rsvpSuccessMessage = document.getElementById('rsvp-success-message') || document.getElementById('diet-success-message');
+  const dietForm = rsvpForm;
+  const dietSuccessMessage = rsvpSuccessMessage;
   const floatingBallButtons = document.querySelectorAll('.floating-pokeball-btn');
   const soundToggleBtn = document.getElementById('sound-toggle');
   const themeToggleBtn = document.getElementById('theme-toggle');
@@ -761,21 +763,22 @@
   }
 
   /* ==========================================================================
-     9. DIET RESTRICTIONS FORM WITH HEALING LIGHTS
+     9. RSVP FORM (WEB3FORMS) WITH HEALING LIGHTS
      ========================================================================== */
   function initDietForm() {
-    if (!dietForm) return;
+    const form = rsvpForm || dietForm;
+    if (!form) return;
 
     let isSubmitting = false;
 
-    dietForm.addEventListener('submit', function (e) {
+    form.addEventListener('submit', async function (e) {
       e.preventDefault();
       if (isSubmitting) return;
 
       const nameInput = document.getElementById('trainer-name');
       const countInput = document.getElementById('party-count');
-      const submitBtn = document.getElementById('submit-diet-btn');
-      const healingTerminal = dietForm.closest('.healing-terminal');
+      const submitBtn = form.querySelector('button[type="submit"]') || document.getElementById('submit-rsvp-btn') || document.getElementById('submit-diet-btn');
+      const healingTerminal = form.closest('.healing-terminal');
       const healSlots = document.querySelectorAll('.healing-machine-lights .heal-slot');
 
       if (!nameInput || !nameInput.value.trim()) {
@@ -801,6 +804,7 @@
       }
 
       isSubmitting = true;
+      const originalBtnHtml = submitBtn ? submitBtn.innerHTML : 'Send to Professor Oak ✉️';
 
       // 1. Submit Button Loading State with spinning Poké Ball
       if (submitBtn) {
@@ -834,36 +838,87 @@
         });
       }
 
-      // 3. Smooth transition: fade out form after sequence
-      const totalHealingDuration = (healSlots && healSlots.length > 0) ? healSlots.length * 110 + 320 : 500;
+      // 3. Web3Forms Submission
+      const formData = new FormData(form);
+      formData.set('access_key', 'b9b7d051-66f1-4d60-84f0-c77dde7bab19');
 
-      setTimeout(function () {
-        dietForm.classList.add('form-fade-out');
+      // Ensure name and message fields are populated for Web3Forms email formatting
+      if (!formData.has('name') && formData.has('trainerName')) {
+        formData.append('name', formData.get('trainerName'));
+      }
+      if (!formData.has('message') && formData.has('dietNotes')) {
+        formData.append('message', formData.get('dietNotes'));
+      }
 
-        setTimeout(function () {
-          dietForm.style.display = 'none';
-          if (dietSuccessMessage) {
-            dietSuccessMessage.hidden = false;
-            dietSuccessMessage.focus();
-          }
+      const totalHealingDuration = (healSlots && healSlots.length > 0) ? healSlots.length * 110 + 200 : 400;
+      const animDelay = new Promise(function (resolve) {
+        setTimeout(resolve, totalHealingDuration);
+      });
 
-          playSynthSound('victory');
+      try {
+        const [response] = await Promise.all([
+          fetch('https://api.web3forms.com/submit', {
+            method: 'POST',
+            body: formData
+          }),
+          animDelay
+        ]);
 
-          // Confetti explosion from the terminal center
-          const formRect = (healingTerminal || dietForm).getBoundingClientRect();
-          triggerConfettiBurst(
-            formRect.left + formRect.width / 2,
-            formRect.top + Math.min(formRect.height / 2, 200),
-            80
-          );
+        const data = await response.json();
 
+        if (response.ok && data.success !== false) {
+          form.classList.add('form-fade-out');
+
+          setTimeout(function () {
+            form.style.display = 'none';
+            const successMsg = rsvpSuccessMessage || dietSuccessMessage;
+            if (successMsg) {
+              successMsg.hidden = false;
+              successMsg.focus();
+            }
+
+            playSynthSound('victory');
+
+            // Confetti explosion from the terminal center
+            const formRect = (healingTerminal || form).getBoundingClientRect();
+            triggerConfettiBurst(
+              formRect.left + formRect.width / 2,
+              formRect.top + Math.min(formRect.height / 2, 200),
+              80
+            );
+
+            if (healingTerminal) {
+              setTimeout(function () {
+                healingTerminal.classList.remove('healing-active');
+              }, 1000);
+            }
+          }, 320);
+
+          form.reset();
+        } else {
+          alert('Error: ' + (data.message || 'Failed to submit RSVP. Please try again.'));
           if (healingTerminal) {
-            setTimeout(function () {
-              healingTerminal.classList.remove('healing-active');
-            }, 1000);
+            healingTerminal.classList.remove('healing-active');
           }
-        }, 320);
-      }, totalHealingDuration);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('btn-submitting');
+            submitBtn.innerHTML = originalBtnHtml;
+          }
+          isSubmitting = false;
+        }
+      } catch (error) {
+        alert('Something went wrong. Please check your internet connection and try again.');
+        if (healingTerminal) {
+          healingTerminal.classList.remove('healing-active');
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('btn-submitting');
+          submitBtn.innerHTML = originalBtnHtml;
+        }
+        isSubmitting = false;
+      }
     });
   }
 

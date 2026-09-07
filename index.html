@@ -470,17 +470,22 @@
             </div>
 
             <!-- Central Artwork Frame -->
-            <div class="tcg-art-frame">
-              <div class="art-bg-flames" aria-hidden="true">
-                <div class="flame-glow flame-back"></div>
-                <div class="flame-glow flame-front"></div>
-              </div>
-              <div class="art-squad-composition" aria-hidden="true">
-                <img src="assets/pokemon/6.png" alt="Charizard" class="art-charizard" loading="eager">
-                <img src="assets/pokemon/25.png" alt="Pikachu" class="art-pikachu" loading="eager">
-                <img src="assets/pokemon/7.png" alt="Squirtle" class="art-squirtle" loading="eager">
-                <img src="assets/pokemon/1.png" alt="Bulbasaur" class="art-bulbasaur" loading="eager">
-              </div>
+            <div class="tcg-art-frame" id="tcg-art-frame" role="img" aria-label="Charizard spitting fire surrounded by Pikachu, Squirtle, Bulbasaur, and Charmander">
+              <img
+                src="assets/card-art.jpg"
+                alt="Charizard, Pikachu, Squirtle, Bulbasaur, and Charmander celebrating"
+                class="tcg-art-image"
+                id="tcg-art-image"
+                loading="eager"
+              >
+              <!-- Ambient Fire Glow Pulse Layer -->
+              <div class="charizard-fire-glow" id="charizard-fire-glow" aria-hidden="true"></div>
+
+              <!-- Animated Fire Canvas for Charizard's Fire Breath -->
+              <canvas id="charizard-flame-canvas" class="charizard-flame-canvas" aria-hidden="true"></canvas>
+
+              <!-- Card Art Holographic Foil Sheen & Specular Sparkles -->
+              <div class="art-holo-sheen" id="art-holo-sheen" aria-hidden="true"></div>
               <div class="art-sparkle-overlay" aria-hidden="true">✨</div>
             </div>
 
@@ -1253,16 +1258,18 @@
 </h3>
             </div>
 
-            <!-- Diet Form -->
-            <form id="diet-form" class="diet-form" novalidate action="https://api.web3forms.com/submit" method="POST">
+            <!-- RSVP Form -->
+            <form id="rsvp-form" name="rsvp-form" class="rsvp-form diet-form" novalidate action="https://api.web3forms.com/submit" method="POST">
               <input type="hidden" name="access_key" value="b9b7d051-66f1-4d60-84f0-c77dde7bab19">
+              <input type="hidden" name="subject" value="New Pokémon Party RSVP!">
+              <input type="hidden" name="from_name" value="Elio's 5th Birthday RSVP">
 
               <div class="form-field">
                 <label for="trainer-name" class="field-label">Trainer Name (Family or Guest) *</label>
                 <input
                   type="text"
                   id="trainer-name"
-                  name="trainerName"
+                  name="name"
                   class="party-input"
                   placeholder="e.g. Ash Ketchum & Pikachu"
                   required
@@ -1273,20 +1280,20 @@
                 <label for="diet-notes" class="field-label">Dietary Restrictions & Allergies</label>
                 <textarea
                   id="diet-notes"
-                  name="dietNotes"
+                  name="message"
                   class="party-textarea"
                   rows="3"
                   placeholder="e.g. Peanut allergy, gluten-free, dairy-free, vegetarian, etc."
                 ></textarea>
               </div>
 
-              <button type="submit" id="submit-diet-btn" class="party-btn party-btn-primary form-submit-btn">
+              <button type="submit" id="submit-rsvp-btn" class="party-btn party-btn-primary form-submit-btn">
                 Send to Professor Oak ✉️
               </button>
             </form>
 
             <!-- Success Message State (Hidden initially) -->
-            <div id="diet-success-message" class="diet-success-card" hidden role="status" aria-live="polite">
+            <div id="rsvp-success-message" class="rsvp-success-card diet-success-card" hidden role="status" aria-live="polite">
               <div class="success-icon">✅</div>
               <h4 class="success-title">Registered in Pokédex!</h4>
               <p class="success-desc">Thanks, Trainer! Your info has been noted. We can't wait to celebrate with you!</p>
