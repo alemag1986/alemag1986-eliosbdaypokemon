@@ -2875,7 +2875,8 @@ section {
 }
 
 .party-input,
-.party-textarea {
+.party-textarea,
+.party-select {
   width: 100%;
   font-family: var(--font-sans);
   font-size: 1rem;
@@ -2890,8 +2891,20 @@ section {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
+.party-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2316181d%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px 16px;
+  padding-right: 40px;
+}
+
 .party-input:focus,
-.party-textarea:focus {
+.party-textarea:focus,
+.party-select:focus {
   border-color: var(--poke-red);
   box-shadow: 0 0 0 3px rgba(235, 59, 50, 0.25);
 }
@@ -2909,7 +2922,8 @@ section {
 }
 
 .party-input.form-field-invalid,
-.party-textarea.form-field-invalid {
+.party-textarea.form-field-invalid,
+.party-select.form-field-invalid {
   border-color: #ff4757 !important;
   box-shadow: 0 0 0 4px rgba(255, 71, 87, 0.35) !important;
   animation: formShake 0.4s ease-in-out;

@@ -1214,18 +1214,17 @@
               </div>
 
               <div class="form-field">
-                <label for="party-count" class="field-label">Number of Guests *</label>
-                <input
-                  type="number"
-                  id="party-count"
-                  name="guests"
-                  class="party-input"
-                  min="1"
-                  max="20"
-                  value="1"
-                  placeholder="e.g. 2"
-                  required
-                >
+                <label for="party-count" class="field-label">Number of Kids Above 2 Years Old *</label>
+                <select id="party-count" name="kids_above_2" class="party-input party-select" required>
+                  <option value="" disabled selected>Select number of kids...</option>
+                  <option value="0">0 (Adults only / under 2)</option>
+                  <option value="1">1 kid</option>
+                  <option value="2">2 kids</option>
+                  <option value="3">3 kids</option>
+                  <option value="4">4 kids</option>
+                  <option value="5">5 kids</option>
+                  <option value="6+">6+ kids</option>
+                </select>
               </div>
 
               <div class="form-field">

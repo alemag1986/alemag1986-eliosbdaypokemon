@@ -817,7 +817,7 @@
         return;
       }
 
-      if (countInput && (!countInput.value.trim() || parseInt(countInput.value, 10) < 1)) {
+      if (countInput && countInput.value.trim() === '') {
         countInput.classList.add('form-field-invalid');
         countInput.focus();
         playSynthSound('error');
@@ -873,7 +873,8 @@
       if (!formData.has('message') && formData.has('dietNotes')) {
         formData.append('message', formData.get('dietNotes'));
       }
-      if (countInput && countInput.value) {
+      if (countInput && countInput.value !== '') {
+        formData.set('kids_above_2', countInput.value);
         formData.set('guests', countInput.value);
       }
 
