@@ -1800,7 +1800,7 @@ section {
   gap: 10px;
 }
 
-.section-h2::after {
+/* .section-h2::after {
   content: "";
   display: block;
   width: 26px;
@@ -1811,7 +1811,7 @@ section {
     radial-gradient(circle at 50% 50%, #ffffff 0%, #ffffff 20%, var(--ink) 20.5%, var(--ink) 28%, transparent 28.5%),
     linear-gradient(180deg, var(--poke-red) 0%, var(--poke-red) 45%, var(--ink) 45.1%, var(--ink) 54.9%, #ffffff 55%, #ffffff 100%);
   box-shadow: 2px 2px 0 var(--ink);
-}
+} */
 
 .section-sub {
   font-size: 1rem;
@@ -2895,6 +2895,30 @@ section {
   letter-spacing: 2px;
 }
 
+.footer-disclaimer {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--gb-light);
+  max-width: 680px;
+  margin: 22px auto 0 auto;
+  opacity: 0.92;
+}
+
+.footer-disclaimer-link {
+  color: var(--yellow);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 700;
+  transition: color 0.18s ease, text-decoration-color 0.18s ease;
+}
+
+.footer-disclaimer-link:hover,
+.footer-disclaimer-link:focus-visible {
+  color: #ffffff;
+  text-decoration-color: #ffffff;
+}
+
 /* ==========================================================================
    SCROLL REVEAL UTILITY
    ========================================================================== */
@@ -3188,7 +3212,7 @@ section {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  z-index: auto;
   overflow: hidden;
 }
 
@@ -3279,7 +3303,7 @@ section {
 
 .streetlamp {
   position: absolute;
-  z-index: 4;
+  z-index: 5;
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
 }
 .streetlamp.lamp-left { top: 20px; left: 47%; }
@@ -3386,11 +3410,7 @@ section {
   100% { transform: skewX(6deg); }
 }
 
-/* 3. Commercial Plaza (Gifts: 8 Buildings, cleanly spaced) */
-.section-gifts {
-  min-height: 860px;
-}
-
+/* 3. Commercial Plaza (Gifts: 7 Buildings, cleanly spaced) */
 .commercial-plaza-backdrop .mart-right {
   position: absolute;
   top: 20px;
@@ -3402,7 +3422,7 @@ section {
 
 .commercial-plaza-backdrop .center-left {
   position: absolute;
-  top: 170px;
+  top: 135px;
   left: 2%;
   z-index: 2;
   text-align: center;
@@ -3410,32 +3430,27 @@ section {
 }
 
 .commercial-plaza-backdrop .bldg-dept {
-  top: 340px;
+  top: 295px;
   left: 2%;
 }
 
 .commercial-plaza-backdrop .bldg-bike {
-  top: 510px;
-  left: 2%;
-}
-
-.commercial-plaza-backdrop .bldg-bakery {
-  top: 680px;
+  bottom: 25px;
   left: 2%;
 }
 
 .commercial-plaza-backdrop .bldg-game {
-  top: 190px;
+  top: 175px;
   right: 2%;
 }
 
 .commercial-plaza-backdrop .bldg-boutique {
-  top: 360px;
+  top: 335px;
   right: 2%;
 }
 
 .commercial-plaza-backdrop .bldg-townhome {
-  top: 530px;
+  bottom: 25px;
   right: 2%;
 }
 
@@ -3444,7 +3459,7 @@ section {
   top: 15px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 4;
+  z-index: 8;
   filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.25));
 }
 

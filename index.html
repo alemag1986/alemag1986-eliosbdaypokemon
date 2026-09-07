@@ -586,8 +586,6 @@
           <use href="#poke-round-tree" x="405" y="6"/>
           <use href="#poke-round-tree" x="452" y="1"/>
           <use href="#poke-round-tree" x="498" y="4"/>
-          <use href="#poke-round-tree" x="545" y="0"/>
-          <use href="#poke-round-tree" x="592" y="5"/>
           <use href="#poke-round-tree" x="638" y="2"/>
           <use href="#poke-round-tree" x="685" y="6"/>
           <use href="#poke-round-tree" x="732" y="1"/>
@@ -1026,18 +1024,6 @@
           <div class="building-nameplate">BOUTIQUE</div>
         </div>
 
-        <!-- House 7: Poké Café & Bakery (Lower Left) -->
-        <div class="town-building town-house bldg-bakery">
-          <svg class="scene-svg svg-bakery" viewBox="0 0 120 110" width="115" height="105">
-            <polygon points="60,12 114,44 6,44" fill="#e77f67" stroke="#16181d" stroke-width="3.5" stroke-linejoin="round"/>
-            <rect x="15" y="44" width="90" height="56" fill="#f8efba" stroke="#16181d" stroke-width="3.5" rx="3"/>
-            <!-- Striped awning -->
-            <path d="M16,52 L104,52 L100,62 L20,62 Z" fill="#f19066" stroke="#16181d" stroke-width="2"/>
-            <rect x="25" y="65" width="28" height="22" fill="#ffeaa7" stroke="#16181d" stroke-width="2" rx="2"/>
-            <rect x="64" y="62" width="22" height="38" fill="#596275" stroke="#16181d" stroke-width="2.5" rx="2"/>
-          </svg>
-          <div class="building-nameplate">POKÉ CAFÉ</div>
-        </div>
 
         <!-- House 8: Plaza Residential Townhome (Lower Right) -->
         <div class="town-building town-house bldg-townhome">
@@ -1082,7 +1068,8 @@
         <div class="section-heading-wrap scroll-reveal">
           <h2 class="section-h2">Poké Mart Gifts</h2>
           <div class="rotated-sign-banner">
-            "Your presence is the best gift... but if you insist! 😉"
+            "Your presence is the best gift... but if you insist! 😉",
+          here are some ideas:
           </div>
         </div>
 
@@ -1244,8 +1231,8 @@
         </div>
 
         <div class="section-heading-wrap scroll-reveal">
-          <h2 class="section-h2">Pokémon Center Check-In</h2>
-          <p class="section-sub">Let Nurse Joy know your team's dietary requirements!</p>
+          <h2 class="section-h2">Pokémon Center RSVP</h2>
+          <!-- <p class="section-sub">Let Nurse Joy know your team's dietary requirements!</p> -->
         </div>
 
         <div class="form-container scroll-reveal">
@@ -1262,11 +1249,14 @@
 
             <div class="form-header">
               <span class="form-header-icon" aria-hidden="true">🍕</span>
-              <h3 class="form-header-title">Diet Restrictions & Allergies</h3>
+              <h3 class="form-header-title">Let's make sure every little guest has a great time.
+</h3>
             </div>
 
             <!-- Diet Form -->
-            <form id="diet-form" class="diet-form" novalidate>
+            <form id="diet-form" class="diet-form" novalidate action="https://api.web3forms.com/submit" method="POST">
+              <input type="hidden" name="access_key" value="b9b7d051-66f1-4d60-84f0-c77dde7bab19">
+
               <div class="form-field">
                 <label for="trainer-name" class="field-label">Trainer Name (Family or Guest) *</label>
                 <input
@@ -1275,20 +1265,6 @@
                   name="trainerName"
                   class="party-input"
                   placeholder="e.g. Ash Ketchum & Pikachu"
-                  required
-                >
-              </div>
-
-              <div class="form-field">
-                <label for="party-count" class="field-label">Number of Guests Attending *</label>
-                <input
-                  type="number"
-                  id="party-count"
-                  name="partyCount"
-                  class="party-input"
-                  min="1"
-                  max="12"
-                  value="1"
                   required
                 >
               </div>
@@ -1535,6 +1511,9 @@
 
         <p class="footer-tagline">
           * ELIO VERSION * PALLET TOWN, TX * 2026
+        </p>
+        <p class="footer-disclaimer">
+          Disclaimer: We know <a href="https://youtu.be/M57arJSCcbk?t=18" target="_blank" rel="noopener noreferrer" class="footer-disclaimer-link">Chuck E. Cheese loves cheese a little too much</a>, so we’ve already run a full background check on Chucky. Rest assured—he’s cheesy, but cleared for the party! 🧀🐭
         </p>
       </div>
     </footer>

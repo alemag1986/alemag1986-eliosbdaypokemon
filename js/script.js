@@ -866,8 +866,7 @@
       const rightMargin = isMobile ? totalWidth * 0.88 : Math.min(totalWidth - 50, totalWidth * 0.84);
 
       // Vertical coordinates aligned with real section geometry (Details -> Gifts -> RSVP -> Pokémon -> Footer)
-      const treeCanopyY = details ? details.offsetTop - 18 : 780;
-      const y0 = treeCanopyY;                                                               // Starting right IN BETWEEN THE TREES!
+      const y0 = details ? details.offsetTop : 800;                                         // Start at horizontal line where green grass begins
       const y1 = details ? details.offsetTop + 85 : 880;                                    // Pallet Town residential street between houses
       const y2 = details ? details.offsetTop + 240 : 1040;                                  // Center of canal wooden footbridge
       const y3 = details ? details.offsetTop + 420 : 1220;                                  // Ducks behind details cards
@@ -937,9 +936,18 @@
       const totalLength = routeSurface.getTotalLength();
       if (!totalLength) return;
 
+      const details = document.getElementById('details');
+      const detailsTop = details ? details.offsetTop : 800;
       const maxScroll = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
       const scrollY = window.scrollY || window.pageYOffset || 0;
-      const progress = Math.min(1, Math.max(0, scrollY / maxScroll));
+
+      // Road starts at detailsTop (the green horizontal line).
+      // When user is in hero section, trainer waits at the beginning of the road (detailsTop).
+      // As user scrolls past hero into details, trainer moves smoothly with scroll,
+      // staying in viewport focus throughout the journey to the footer.
+      const startScroll = Math.max(0, detailsTop - window.innerHeight * 0.4);
+      const scrollRange = Math.max(1, maxScroll - startScroll);
+      const progress = scrollY <= startScroll ? 0 : Math.min(1, (scrollY - startScroll) / scrollRange);
 
       const currentLength = progress * totalLength;
       const pt = routeSurface.getPointAtLength(currentLength);
