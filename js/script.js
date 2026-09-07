@@ -112,6 +112,28 @@
         gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
         osc.start(now);
         osc.stop(now + 0.12);
+      } else if (type === 'heal') {
+        // Classic Pokemon Center 6-tone recovery chime
+        const chimeNotes = [
+          { f: 523.25, t: 0.0, d: 0.09 },
+          { f: 659.25, t: 0.09, d: 0.09 },
+          { f: 783.99, t: 0.18, d: 0.09 },
+          { f: 1046.50, t: 0.27, d: 0.11 },
+          { f: 1318.51, t: 0.38, d: 0.12 },
+          { f: 1567.98, t: 0.50, d: 0.32 }
+        ];
+        chimeNotes.forEach(function (n) {
+          const noteOsc = ctx.createOscillator();
+          const noteGain = ctx.createGain();
+          noteOsc.type = 'triangle';
+          noteOsc.frequency.setValueAtTime(n.f, now + n.t);
+          noteGain.gain.setValueAtTime(0.12, now + n.t);
+          noteGain.gain.linearRampToValueAtTime(0.01, now + n.t + n.d);
+          noteOsc.connect(noteGain);
+          noteGain.connect(ctx.destination);
+          noteOsc.start(now + n.t);
+          noteOsc.stop(now + n.t + n.d);
+        });
       }
     } catch (e) {
       // Audio fallback silent
@@ -744,31 +766,104 @@
   function initDietForm() {
     if (!dietForm) return;
 
+    let isSubmitting = false;
+
     dietForm.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (isSubmitting) return;
 
       const nameInput = document.getElementById('trainer-name');
       const countInput = document.getElementById('party-count');
+      const submitBtn = document.getElementById('submit-diet-btn');
+      const healingTerminal = dietForm.closest('.healing-terminal');
+      const healSlots = document.querySelectorAll('.healing-machine-lights .heal-slot');
 
       if (!nameInput || !nameInput.value.trim()) {
-        nameInput.focus();
+        if (nameInput) {
+          nameInput.classList.add('form-field-invalid');
+          nameInput.focus();
+          playSynthSound('error');
+          setTimeout(function () {
+            nameInput.classList.remove('form-field-invalid');
+          }, 600);
+        }
         return;
       }
 
-      if (!countInput || !countInput.value.trim() || parseInt(countInput.value, 10) < 1) {
+      if (countInput && (!countInput.value.trim() || parseInt(countInput.value, 10) < 1)) {
+        countInput.classList.add('form-field-invalid');
         countInput.focus();
+        playSynthSound('error');
+        setTimeout(function () {
+          countInput.classList.remove('form-field-invalid');
+        }, 600);
         return;
       }
 
-      playSynthSound('victory');
-      const formRect = dietForm.getBoundingClientRect();
-      triggerConfettiBurst(formRect.left + formRect.width / 2, formRect.top + formRect.height / 2, 70);
+      isSubmitting = true;
 
-      dietForm.style.display = 'none';
-      if (dietSuccessMessage) {
-        dietSuccessMessage.hidden = false;
-        dietSuccessMessage.focus();
+      // 1. Submit Button Loading State with spinning Poké Ball
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('btn-submitting');
+        submitBtn.innerHTML = '<span class="pokeball-spinner" aria-hidden="true"></span> Transmitting to Oak... ⚡';
       }
+
+      // 2. Nurse Joy's Healing Machine Sequence
+      if (healingTerminal) {
+        healingTerminal.classList.add('healing-active');
+      }
+
+      playSynthSound('heal');
+
+      // Light up the 6 healing machine slots sequentially with elemental energy colors
+      const slotColors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff', '#9b59b6', '#00d2d3'];
+      if (healSlots && healSlots.length > 0) {
+        healSlots.forEach(function (slot, idx) {
+          slot.classList.remove('slot-active', 'slot-healing');
+          slot.style.backgroundColor = '#57606f';
+          slot.style.boxShadow = 'none';
+
+          setTimeout(function () {
+            slot.classList.add('slot-healing');
+            const color = slotColors[idx % slotColors.length];
+            slot.style.backgroundColor = color;
+            slot.style.boxShadow = '0 0 14px ' + color;
+            playSynthSound('pop');
+          }, idx * 110);
+        });
+      }
+
+      // 3. Smooth transition: fade out form after sequence
+      const totalHealingDuration = (healSlots && healSlots.length > 0) ? healSlots.length * 110 + 320 : 500;
+
+      setTimeout(function () {
+        dietForm.classList.add('form-fade-out');
+
+        setTimeout(function () {
+          dietForm.style.display = 'none';
+          if (dietSuccessMessage) {
+            dietSuccessMessage.hidden = false;
+            dietSuccessMessage.focus();
+          }
+
+          playSynthSound('victory');
+
+          // Confetti explosion from the terminal center
+          const formRect = (healingTerminal || dietForm).getBoundingClientRect();
+          triggerConfettiBurst(
+            formRect.left + formRect.width / 2,
+            formRect.top + Math.min(formRect.height / 2, 200),
+            80
+          );
+
+          if (healingTerminal) {
+            setTimeout(function () {
+              healingTerminal.classList.remove('healing-active');
+            }, 1000);
+          }
+        }, 320);
+      }, totalHealingDuration);
     });
   }
 
