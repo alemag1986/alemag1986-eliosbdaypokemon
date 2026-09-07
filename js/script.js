@@ -114,6 +114,30 @@
         gain.gain.linearRampToValueAtTime(0.01, now + 0.12);
         osc.start(now);
         osc.stop(now + 0.12);
+      } else if (type === 'flame') {
+        const bufferSize = Math.floor(ctx.sampleRate * 0.45);
+        const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          output[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.55));
+        }
+        const whiteNoise = ctx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(650, now);
+        filter.frequency.linearRampToValueAtTime(180, now + 0.45);
+        filter.Q.setValueAtTime(3, now);
+
+        whiteNoise.connect(filter);
+        filter.connect(gain);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
+
+        whiteNoise.start(now);
+        whiteNoise.stop(now + 0.45);
+        return;
       } else if (type === 'heal') {
         // Classic Pokemon Center 6-tone recovery chime
         const chimeNotes = [
@@ -929,6 +953,7 @@
     const stage = document.getElementById('hero-card-stage');
     const card = document.getElementById('tcg-hero-card');
     const glare = card ? card.querySelector('.card-holo-glare') : null;
+    const artSheen = card ? card.querySelector('.art-holo-sheen') : null;
 
     if (!stage || !card || prefersReducedMotion) return;
 
@@ -945,11 +970,17 @@
 
       card.style.transform = 'rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateZ(12px)';
 
+      const glareX = (x / rect.width) * 100;
+      const glareY = (y / rect.height) * 100;
+
       if (glare) {
-        const glareX = (x / rect.width) * 100;
-        const glareY = (y / rect.height) * 100;
         glare.style.opacity = '0.75';
         glare.style.background = 'radial-gradient(circle at ' + glareX + '% ' + glareY + '%, rgba(255,255,255,0.65) 0%, rgba(255,220,100,0.35) 25%, transparent 65%)';
+      }
+
+      if (artSheen) {
+        artSheen.style.opacity = '0.88';
+        artSheen.style.backgroundPosition = glareX + '% ' + glareY + '%';
       }
     });
 
@@ -959,7 +990,221 @@
         glare.style.opacity = '0.5';
         glare.style.background = '';
       }
+      if (artSheen) {
+        artSheen.style.opacity = '0.65';
+        artSheen.style.backgroundPosition = '';
+      }
     });
+  }
+
+  /* ==========================================================================
+     11. CHARIZARD ANIMATED FIRE BREATH ENGINE
+     ========================================================================== */
+  function initCharizardFlame() {
+    const canvas = document.getElementById('charizard-flame-canvas');
+    const frame = document.getElementById('tcg-art-frame');
+    const glow = document.getElementById('charizard-fire-glow');
+    if (!canvas || !frame) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let width = 0;
+    let height = 0;
+    let dpr = 1;
+    let particles = [];
+    let surgeTimer = 0;
+    let isSurging = false;
+    let time = 0;
+
+    function resize() {
+      const rect = frame.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = rect.width;
+      height = rect.height;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    resize();
+    window.addEventListener('resize', resize, { passive: true });
+
+    if (prefersReducedMotion) return;
+
+    class FlameParticle {
+      constructor(originX, originY, isBlast) {
+        this.reset(originX, originY, isBlast);
+      }
+
+      reset(originX, originY, isBlast) {
+        this.x = originX + (Math.random() - 0.5) * 6;
+        this.y = originY + (Math.random() - 0.5) * 6;
+
+        // Trajectory pointing towards upper right corner (-24 degrees angle)
+        const baseAngle = -0.42 + (Math.random() - 0.5) * (isBlast ? 0.65 : 0.38);
+        const speed = isBlast ? (5.0 + Math.random() * 4.5) : (2.6 + Math.random() * 3.2);
+
+        this.vx = Math.cos(baseAngle) * speed;
+        this.vy = Math.sin(baseAngle) * speed - (0.2 + Math.random() * 0.35);
+
+        this.maxLife = isBlast ? (35 + Math.random() * 30) : (45 + Math.random() * 35);
+        this.life = this.maxLife;
+
+        const rand = Math.random();
+        if (rand < 0.28) {
+          this.type = 'core'; // Bright white-yellow plasma core
+          this.baseSize = 4 + Math.random() * 4;
+          this.growth = 0.28;
+        } else if (rand < 0.76) {
+          this.type = 'flame'; // Expanding fiery orange/red tongue
+          this.baseSize = 6 + Math.random() * 8;
+          this.growth = 0.52;
+        } else if (rand < 0.92) {
+          this.type = 'ember'; // Crackling golden sparks
+          this.baseSize = 2 + Math.random() * 2.5;
+          this.growth = -0.01;
+        } else {
+          this.type = 'smoke'; // Subtle smoke puff
+          this.baseSize = 7 + Math.random() * 8;
+          this.growth = 0.55;
+        }
+
+        this.wobblePhase = Math.random() * Math.PI * 2;
+        this.wobbleSpeed = 0.08 + Math.random() * 0.08;
+      }
+
+      update() {
+        this.life--;
+        this.wobblePhase += this.wobbleSpeed;
+        this.x += this.vx + Math.sin(this.wobblePhase) * 0.7;
+        this.y += this.vy + Math.cos(this.wobblePhase) * 0.5;
+        this.vx *= 0.988;
+        this.vy *= 0.988;
+      }
+
+      draw(c) {
+        const progress = 1 - (this.life / this.maxLife);
+        const alpha = Math.sin((1 - progress) * Math.PI * 0.5);
+        if (alpha <= 0.01) return;
+
+        const currentSize = Math.max(1, this.baseSize + progress * this.growth * 22);
+        c.save();
+        c.globalAlpha = Math.max(0, Math.min(1, alpha));
+
+        if (this.type === 'core') {
+          c.fillStyle = '#ffffff';
+          c.shadowColor = '#ffeaa7';
+          c.shadowBlur = 8;
+          c.beginPath();
+          c.arc(this.x, this.y, currentSize * 0.7, 0, Math.PI * 2);
+          c.fill();
+        } else if (this.type === 'flame') {
+          const grad = c.createRadialGradient(this.x, this.y, 0, this.x, this.y, currentSize);
+          grad.addColorStop(0, 'rgba(255, 245, 170, 0.95)');
+          grad.addColorStop(0.35, 'rgba(255, 125, 20, 0.85)');
+          grad.addColorStop(0.75, 'rgba(235, 45, 10, 0.6)');
+          grad.addColorStop(1, 'rgba(180, 20, 0, 0)');
+          c.fillStyle = grad;
+          c.beginPath();
+          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
+          c.fill();
+        } else if (this.type === 'ember') {
+          c.fillStyle = '#ffd700';
+          c.shadowColor = '#ff7675';
+          c.shadowBlur = 5;
+          c.beginPath();
+          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
+          c.fill();
+        } else if (this.type === 'smoke') {
+          c.fillStyle = 'rgba(60, 25, 15, ' + (alpha * 0.35) + ')';
+          c.beginPath();
+          c.arc(this.x, this.y, currentSize, 0, Math.PI * 2);
+          c.fill();
+        }
+
+        c.restore();
+      }
+    }
+
+    function spawnBurst(count, isBlast) {
+      // Charizard mouth anchor in calibrated art frame
+      const originX = width * 0.57;
+      const originY = height * 0.22;
+      for (let i = 0; i < count; i++) {
+        particles.push(new FlameParticle(originX, originY, isBlast));
+      }
+    }
+
+    // Interactive Flamethrower on click/tap
+    frame.addEventListener('click', function () {
+      spawnBurst(42, true);
+      playSynthSound('flame');
+      if (glow) {
+        glow.style.transform = 'scale(1.15)';
+        glow.style.opacity = '1';
+        setTimeout(function () {
+          glow.style.transform = '';
+          glow.style.opacity = '';
+        }, 400);
+      }
+    });
+
+    function loop() {
+      time++;
+      if (width === 0 || height === 0) {
+        resize();
+      }
+
+      ctx.clearRect(0, 0, width, height);
+
+      // Periodic dragon breathing surge (every ~180 frames / 3 seconds)
+      surgeTimer++;
+      if (surgeTimer % 180 === 0) {
+        isSurging = true;
+      }
+      if (surgeTimer % 180 === 45) {
+        isSurging = false;
+      }
+
+      // Continuous emission from mouth
+      const spawnRate = isSurging ? 4 : 2;
+      spawnBurst(spawnRate, isSurging);
+
+      // Charizard tail flame embers on the left
+      if (time % 6 === 0) {
+        const tailX = width * 0.08 + (Math.random() - 0.5) * 6;
+        const tailY = height * 0.40 + (Math.random() - 0.5) * 6;
+        const p = new FlameParticle(tailX, tailY, false);
+        p.vx = (Math.random() - 0.5) * 0.7;
+        p.vy = -1.2 - Math.random() * 1.0;
+        p.type = 'ember';
+        p.maxLife = 28;
+        p.life = 28;
+        particles.push(p);
+      }
+
+      ctx.globalCompositeOperation = 'screen';
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        if (p.life <= 0 || p.x > width + 30 || p.y < -30) {
+          particles.splice(i, 1);
+        } else {
+          p.draw(ctx);
+        }
+      }
+
+      if (particles.length > 160) {
+        particles.splice(0, particles.length - 160);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
   }
 
   /* ==========================================================================
@@ -1195,6 +1440,7 @@
     initScrollReveals();
     initDietForm();
     initCardTilt();
+    initCharizardFlame();
     initSoundToggle();
     initThemeToggle();
     initScrollTrainer();
