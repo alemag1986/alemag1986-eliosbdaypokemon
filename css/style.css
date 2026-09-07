@@ -1383,81 +1383,92 @@ body {
 
 .tcg-art-frame {
   position: relative;
-  height: 220px;
-  background: radial-gradient(circle at 50% 60%, #ffeaa7 0%, #ff7675 50%, #d63031 90%);
+  height: 275px;
+  background: #1a0f0a;
   border: 4px solid var(--ink);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.4), var(--shadow-comic-sm);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5), var(--shadow-comic-sm);
   margin-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.art-bg-flames {
+.tcg-art-image {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 30%, rgba(255, 234, 167, 0.8) 0%, transparent 65%),
-    repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 118, 117, 0.2) 0deg 20deg, transparent 20deg 40deg);
-  animation: rotateFlames 30s linear infinite;
-}
-
-@keyframes rotateFlames {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.art-squad-composition {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.art-charizard {
-  position: absolute;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 175px;
-  height: 175px;
-  object-fit: contain;
-  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 18%;
+  display: block;
   z-index: 1;
+  pointer-events: none;
+  filter: contrast(1.04) saturate(1.08);
 }
 
-.art-pikachu {
+.charizard-fire-glow {
   position: absolute;
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 105px;
-  height: 105px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: radial-gradient(circle at 60% 20%, rgba(255, 120, 0, 0.45) 0%, rgba(255, 50, 0, 0.25) 25%, transparent 60%);
+  mix-blend-mode: screen;
+  animation: fireGlowPulse 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes fireGlowPulse {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+.charizard-flame-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.art-holo-sheen {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    125deg,
+    transparent 15%,
+    rgba(255, 255, 255, 0.35) 32%,
+    rgba(255, 215, 0, 0.3) 42%,
+    rgba(80, 220, 255, 0.35) 52%,
+    rgba(255, 120, 230, 0.3) 62%,
+    rgba(255, 255, 255, 0.3) 72%,
+    transparent 88%
+  );
+  background-size: 260% 260%;
+  mix-blend-mode: color-dodge;
+  opacity: 0.65;
+  pointer-events: none;
   z-index: 4;
+  animation: holoArtSweep 6s ease-in-out infinite alternate;
+  transition: opacity 0.3s ease;
 }
 
-.art-squirtle {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  width: 82px;
-  height: 82px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
-  z-index: 3;
-}
-
-.art-bulbasaur {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  width: 82px;
-  height: 82px;
-  object-fit: contain;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
-  z-index: 3;
+@keyframes holoArtSweep {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  100% {
+    background-position: 30% 70%;
+  }
 }
 
 .art-sparkle-overlay {
@@ -1467,7 +1478,9 @@ body {
   font-size: 1.5rem;
   color: #fffbcf;
   z-index: 5;
+  pointer-events: none;
   animation: twinkle 2s infinite;
+  text-shadow: 0 0 8px rgba(255, 240, 150, 0.8);
 }
 
 .tcg-moves-block {
@@ -3115,6 +3128,10 @@ section {
 
   .card-main-title {
     font-size: 1rem;
+  }
+
+  .tcg-art-frame {
+    height: 240px;
   }
 
   .section-h2 {
