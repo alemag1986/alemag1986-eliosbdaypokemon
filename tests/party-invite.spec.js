@@ -46,6 +46,39 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
     await expect(mainContent).not.toHaveAttribute('aria-hidden', 'true');
   });
 
+  test('Access Gate: should unlock successfully with code ELIO (uppercase and lowercase)', async ({ page }) => {
+    await page.goto('/');
+
+    const passcodeInput = page.locator('#passcode-input');
+    const unlockBtn = page.locator('#unlock-btn');
+
+    // Test lowercase elio
+    await passcodeInput.fill('elio');
+    await unlockBtn.click();
+
+    const gate = page.locator('#access-gate');
+    await expect(gate).toHaveClass(/hidden/, { timeout: 3000 });
+
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+  });
+
+  test('Access Gate: should unlock successfully with lowercase elio5', async ({ page }) => {
+    await page.goto('/');
+
+    const passcodeInput = page.locator('#passcode-input');
+    const unlockBtn = page.locator('#unlock-btn');
+
+    await passcodeInput.fill('elio5');
+    await unlockBtn.click();
+
+    const gate = page.locator('#access-gate');
+    await expect(gate).toHaveClass(/hidden/, { timeout: 3000 });
+
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+  });
+
   test('Access Gate: should unlock when clicking physical START button', async ({ page }) => {
     await page.goto('/');
 
@@ -109,6 +142,16 @@ test.describe("Elio's 5th Birthday Pokémon Invitation Site", () => {
 
   test('URL Query Param: ?code=ELIO5 should instantly bypass gate', async ({ page }) => {
     await page.goto('/?code=ELIO5');
+
+    const gate = page.locator('#access-gate');
+    await expect(gate).toHaveClass(/hidden/);
+
+    const mainContent = page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+  });
+
+  test('URL Query Param: ?code=elio (lowercase) should instantly bypass gate', async ({ page }) => {
+    await page.goto('/?code=elio');
 
     const gate = page.locator('#access-gate');
     await expect(gate).toHaveClass(/hidden/);

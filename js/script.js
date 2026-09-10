@@ -30,7 +30,8 @@
   const themeToggleBtn = document.getElementById('theme-toggle');
   const confettiCanvas = document.getElementById('confetti-canvas');
 
-  const CORRECT_PASSCODE = 'ELIO5';
+  const VALID_PASSCODES = ['ELIO5', 'ELIO'];
+  const DEFAULT_PASSCODE = 'ELIO5';
   let soundEnabled = true;
 
   /* ==========================================================================
@@ -330,7 +331,7 @@
 
     const enteredCode = passcodeInput.value.trim().toUpperCase();
 
-    if (enteredCode === CORRECT_PASSCODE) {
+    if (VALID_PASSCODES.includes(enteredCode)) {
       if (gateError) gateError.textContent = '';
       unlockSite(false);
     } else {
@@ -352,7 +353,7 @@
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const codeParam = urlParams.get('code');
-      if (codeParam && codeParam.trim().toUpperCase() === CORRECT_PASSCODE) {
+      if (codeParam && VALID_PASSCODES.includes(codeParam.trim().toUpperCase())) {
         unlockSite(true);
         return true;
       }
@@ -398,9 +399,11 @@
     }
 
     const val = passcodeInput.value.trim().toUpperCase();
-    if (!val || val === CORRECT_PASSCODE) {
-      // Empty input or correct code: auto-fill ELIO5 and unlock the party!
-      passcodeInput.value = CORRECT_PASSCODE;
+    if (!val || VALID_PASSCODES.includes(val)) {
+      // Empty input: auto-fill ELIO5 and unlock the party!
+      if (!val) {
+        passcodeInput.value = DEFAULT_PASSCODE;
+      }
       if (gateError) gateError.textContent = '';
       unlockSite(false);
     } else {
