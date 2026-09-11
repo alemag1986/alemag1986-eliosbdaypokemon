@@ -3,12 +3,15 @@
  * Provides instant cache hits for static assets & offline resilience
  */
 
-const CACHE_NAME = 'elio-party-v1';
+const CACHE_NAME = 'elio-party-v2';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
+  './css/style.min.css?v=2026.1',
   './css/style.css?v=2026.1',
+  './js/pokemon-data.min.js?v=2026.1',
   './js/pokemon-data.js?v=2026.1',
+  './js/script.min.js?v=2026.1',
   './js/script.js?v=2026.1',
   './assets/pokemon-card-original-380w.webp',
   './assets/pokemon-card-original.webp',

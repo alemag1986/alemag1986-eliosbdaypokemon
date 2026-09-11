@@ -1,0 +1,10 @@
+#!/bin/sh
+# Pre-commit hook: Minify static assets before commit
+
+echo "⚡ Running pre-commit static asset minification..."
+npm run minify
+
+# Automatically stage any minified files that were created or updated
+git add css/*.min.css js/*.min.js 2>/dev/null || true
+
+echo "✅ Pre-commit static minification completed."

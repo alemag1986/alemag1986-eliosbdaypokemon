@@ -1,14 +1,30 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="day">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YR1VWGHLSD"></script>
+  <!-- Google tag (gtag.js) - Deferred loading to prioritize FCP and LCP -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-YR1VWGHLSD');
+
+    function loadGtag() {
+      if (window._gtagLoaded) return;
+      window._gtagLoaded = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=G-YR1VWGHLSD';
+      document.head.appendChild(s);
+    }
+
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(function() { setTimeout(loadGtag, 2500); }, { timeout: 4000 });
+    } else {
+      window.addEventListener('load', function() { setTimeout(loadGtag, 2500); });
+    }
+    ['pointerdown', 'touchstart', 'scroll', 'keydown'].forEach(function(evt) {
+      window.addEventListener(evt, loadGtag, { once: true, passive: true });
+    });
   </script>
 
   <meta charset="UTF-8">
@@ -19,17 +35,20 @@
   <!-- Favicon: Inline SVG Pokéball -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2316181d'/%3E%3Cpath d='M32 4 A28 28 0 0 1 60 32 L4 32 A28 28 0 0 1 32 4 Z' fill='%23e8332a'/%3E%3Cpath d='M32 60 A28 28 0 0 1 4 32 L60 32 A28 28 0 0 1 32 60 Z' fill='%23ffffff'/%3E%3Crect x='2' y='29' width='60' height='6' fill='%2316181d'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%2316181d'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23ffffff'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23e2e8f0'/%3E%3C/svg%3E">
 
+  <!-- Preconnect External Domains for Faster LCP & Analytics -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.google-analytics.com">
+
   <!-- Preload Critical LCP Card Image (Modern WebP Format) -->
   <link rel="preload" as="image" href="assets/pokemon-card-original-380w.webp" type="image/webp" fetchpriority="high" media="(max-width: 480px)">
   <link rel="preload" as="image" href="assets/pokemon-card-original.webp" type="image/webp" fetchpriority="high" media="(min-width: 481px)">
 
   <!-- Google Fonts: Preconnect & Asynchronous Loading (Render-Blocking Fix) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Press+Start+2P&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
   <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Press+Start+2P&display=swap"></noscript>
 
-  <link rel="stylesheet" href="css/style.css?v=2026.1">
+  <link rel="stylesheet" href="css/style.min.css?v=2026.1">
 </head>
 <body>
 
@@ -456,9 +475,14 @@
             <!-- Full Authentic Original Pokémon Trading Card Graphic (Responsive WebP with JPEG fallback) -->
             <picture class="tcg-card-picture">
               <source
+                media="(max-width: 480px)"
                 type="image/webp"
-                srcset="assets/pokemon-card-original-380w.webp 380w, assets/pokemon-card-original.webp 717w"
-                sizes="(max-width: 480px) 380px, 717px"
+                srcset="assets/pokemon-card-original-380w.webp"
+              >
+              <source
+                media="(min-width: 481px)"
+                type="image/webp"
+                srcset="assets/pokemon-card-original.webp"
               >
               <img
                 src="assets/pokemon-card-original.jpg"
@@ -1481,7 +1505,7 @@
       <div class="content-container">
         <!-- Running Pikachu Animation -->
         <div class="footer-pikachu-runner" aria-hidden="true">
-          <img src="assets/pokemon/25.png" alt="Pikachu Running" class="running-pika-img">
+          <img src="assets/pokemon/25.webp" alt="Pikachu Running" class="running-pika-img" width="48" height="48" loading="lazy" decoding="async">
         </div>
 
         <div class="gb-dialog-box footer-dialog">
@@ -1548,8 +1572,8 @@
   </div><!-- /#main-content -->
 
   <!-- Scripts -->
-  <script src="js/pokemon-data.js?v=2026.1" defer></script>
-  <script src="js/script.js?v=2026.1" defer></script>
+  <script src="js/pokemon-data.min.js?v=2026.1" defer></script>
+  <script src="js/script.min.js?v=2026.1" defer></script>
 
   <!-- Service Worker for Instant Repeat Visits & Offline Caching -->
   <script>

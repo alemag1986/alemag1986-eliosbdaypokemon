@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "fetch-pokemon": "node tools/fetch-pokemon.mjs",
+    "minify": "node tools/minify.mjs",
+    "build": "npm run minify",
+    "prepare": "git config core.hooksPath .githooks || true",
     "test": "playwright test"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0"
+    "@playwright/test": "^1.63.0",
+    "esbuild": "^0.28.2"
   }
 }
