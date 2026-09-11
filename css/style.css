@@ -894,6 +894,8 @@ body {
   border-bottom: 4px solid var(--poke-red);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
   padding: 10px 16px;
+  min-height: 58px;
+  box-sizing: border-box;
 }
 
 .nav-container {
@@ -1329,6 +1331,15 @@ body {
   cursor: pointer;
   user-select: none;
   background: #111;
+}
+
+.tcg-card-picture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
 }
 
 .tcg-card-original-img {
@@ -3522,18 +3533,40 @@ section {
 }
 
 @media (max-width: 640px) {
+  .pallet-nav {
+    padding: 8px 12px;
+    min-height: 84px;
+    box-sizing: border-box;
+  }
+
   .nav-container {
-    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px 0;
+  }
+
+  .nav-brand {
+    order: 1;
+    font-size: 0.75rem;
+  }
+
+  .nav-extra-controls {
+    order: 2;
   }
 
   .nav-links {
-    gap: 8px;
+    order: 3;
+    width: 100%;
+    gap: 6px;
     justify-content: center;
+    padding-top: 4px;
   }
 
   .nav-link {
     font-size: 0.55rem;
-    padding: 4px 8px;
+    padding: 4px 6px;
   }
 
   .card-main-title {
